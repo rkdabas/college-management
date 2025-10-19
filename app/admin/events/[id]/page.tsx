@@ -1,12 +1,11 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit, Calendar, MapPin, Users, User, Mail, Phone, Clock } from "lucide-react";
-import { demoEvents } from "@/lib/demo-data";
+import { demoEvents } from "@/lib/demo-data-v2";
 import { formatDate } from "@/lib/utils";
 
 const eventTypeColors: Record<string, string> = {
@@ -25,8 +24,8 @@ const statusColors: Record<string, "default" | "success" | "warning" | "secondar
   cancelled: "warning",
 };
 
-export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function EventDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const event = demoEvents.find((e) => e.id === id);
 
   if (!event) {

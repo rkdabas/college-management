@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,8 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit, Mail, Phone, MapPin, User, Calendar } from "lucide-react";
 import { demoStudents } from "@/lib/demo-data-v2";
 
-export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function StudentDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const student = demoStudents.find((s) => s.id === id);
 
   if (!student) {

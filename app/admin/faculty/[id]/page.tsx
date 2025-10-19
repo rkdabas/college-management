@@ -1,16 +1,15 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit, Mail, Phone, Briefcase, Calendar, Award } from "lucide-react";
-import { demoTeachers } from "@/lib/demo-data";
+import { demoTeachers } from "@/lib/demo-data-v2";
 import { formatCurrency } from "@/lib/utils";
 
-export default function FacultyDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function FacultyDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const teacher = demoTeachers.find((t) => t.id === id);
 
   if (!teacher) {

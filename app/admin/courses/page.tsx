@@ -6,21 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   BookOpen,
-  Plus,
   Search,
   Filter as FilterIcon,
   UserPlus,
   Users,
   X,
+  UserMinus,
 } from "lucide-react";
 import { degrees, branches, batches, getBranchesByDegreeId } from "@/lib/academic-structure-v2";
 import { getSubjects } from "@/lib/academic-structure-v2";
 import { demoTeachers } from "@/lib/demo-data-v2";
 
-export default function CoursesPage() {
+export default function SubjectTeacherAssignmentPage() {
   const [selectedDegree, setSelectedDegree] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("");
-  const [selectedBatch, setSelectedBatch] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -28,6 +27,9 @@ export default function CoursesPage() {
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [selectedTeacher, setSelectedTeacher] = useState("");
+
+  // Current Academic Year (hardcoded for demo - would come from settings in real app)
+  const currentAcademicYear = "2025-2026";
 
   const availableBranches = selectedDegree ? getBranchesByDegreeId(selectedDegree) : branches;
 
@@ -69,18 +71,20 @@ export default function CoursesPage() {
   const resetFilters = () => {
     setSelectedDegree("");
     setSelectedBranch("");
-    setSelectedBatch("");
     setSelectedSemester("");
     setSearchQuery("");
   };
 
-  const hasActiveFilters = selectedDegree || selectedBranch || selectedBatch || selectedSemester || searchQuery;
+  const hasActiveFilters = selectedDegree || selectedBranch || selectedSemester || searchQuery;
 
   // Statistics
   const totalSubjects = filteredSubjects.length;
-  const totalCredits = filteredSubjects.reduce((sum, s) => sum + s.credits, 0);
-  const theoryCount = filteredSubjects.filter((s) => s.type === "theory").length;
-  const practicalCount = filteredSubjects.filter((s) => s.type === "practical").length;
+  const assignedCount = subjectsWithTeachers.filter((s) => s.assignedTeachers.length > 0).length;
+  const unassignedCount = totalSubjects - assignedCount;
+  const totalTeacherAssignments = subjectsWithTeachers.reduce(
+    (sum, s) => sum + s.assignedTeachers.length,
+    0
+  );
 
   // Get branch and degree names
   const getBranchName = (branchId: string) => {
@@ -95,7 +99,7 @@ export default function CoursesPage() {
   // Handle assignment
   const handleAssignSubject = () => {
     if (!selectedSubject || !selectedTeacher) return;
-    
+
     // In a real app, this would update the database
     alert(`Subject "${selectedSubject.name}" assigned to teacher successfully!`);
     setShowAssignmentModal(false);
@@ -103,20 +107,22 @@ export default function CoursesPage() {
     setSelectedTeacher("");
   };
 
+  // Handle unassign
+  const handleUnassignTeacher = (subjectName: string, teacherName: string) => {
+    if (confirm(`Are you sure you want to unassign ${teacherName} from ${subjectName}?`)) {
+      alert(`${teacherName} unassigned from ${subjectName} successfully!`);
+      // In a real app, this would update the database
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Subject Management</h1>
-          <p className="text-gray-600 mt-1">Manage subjects and assign them to teachers</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Subject
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Subject-Teacher Assignment</h1>
+        <p className="text-gray-600 mt-1">
+          Assign subjects to teachers for Academic Year {currentAcademicYear}
+        </p>
       </div>
 
       {/* Summary Cards */}
@@ -134,8 +140,8 @@ export default function CoursesPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">{totalCredits}</p>
-                <p className="text-sm text-gray-600 mt-1">Total Credits</p>
+                <p className="text-3xl font-bold text-green-600">{assignedCount}</p>
+                <p className="text-sm text-gray-600 mt-1">Assigned</p>
               </div>
             </CardContent>
           </Card>
@@ -143,8 +149,8 @@ export default function CoursesPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-blue-600">{theoryCount}</p>
-                <p className="text-sm text-gray-600 mt-1">Theory Courses</p>
+                <p className="text-3xl font-bold text-orange-600">{unassignedCount}</p>
+                <p className="text-sm text-gray-600 mt-1">Unassigned</p>
               </div>
             </CardContent>
           </Card>
@@ -152,8 +158,8 @@ export default function CoursesPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-purple-600">{practicalCount}</p>
-                <p className="text-sm text-gray-600 mt-1">Practical Courses</p>
+                <p className="text-3xl font-bold text-blue-600">{totalTeacherAssignments}</p>
+                <p className="text-sm text-gray-600 mt-1">Total Assignments</p>
               </div>
             </CardContent>
           </Card>
@@ -166,7 +172,7 @@ export default function CoursesPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <FilterIcon className="w-5 h-5" />
-              Search & Filter Subjects
+              Filter Subjects
             </CardTitle>
             {hasActiveFilters && (
               <Button variant="outline" size="sm" onClick={resetFilters}>
@@ -188,8 +194,12 @@ export default function CoursesPage() {
             />
           </div>
 
+          <p className="text-sm text-gray-600">
+            Select degree, branch, and semester to view subjects for easy assignment
+          </p>
+
           {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Degree</label>
               <select
@@ -223,24 +233,6 @@ export default function CoursesPage() {
                     {branch.name}
                   </option>
                 ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Batch</label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={selectedBatch}
-                onChange={(e) => setSelectedBatch(e.target.value)}
-              >
-                <option value="">All Batches</option>
-                {batches
-                  .filter((b) => b.isActive)
-                  .map((batch) => (
-                    <option key={batch.id} value={batch.year}>
-                      {batch.year}
-                    </option>
-                  ))}
               </select>
             </div>
 
@@ -329,6 +321,13 @@ export default function CoursesPage() {
                                 <Users className="w-3 h-3 text-blue-600" />
                                 <span className="text-sm font-medium text-blue-900">{teacher.name}</span>
                                 <span className="text-xs text-blue-600">({teacher.departmentName})</span>
+                                <button
+                                  onClick={() => handleUnassignTeacher(subject.name, teacher.name)}
+                                  className="ml-1 hover:bg-blue-100 rounded-full p-0.5"
+                                  title="Unassign teacher"
+                                >
+                                  <X className="w-3 h-3 text-red-600" />
+                                </button>
                               </div>
                             ))}
                           </div>
@@ -425,8 +424,14 @@ export default function CoursesPage() {
                         <p className="font-medium">{teacher.name}</p>
                         <p className="text-sm text-gray-600">{teacher.departmentName}</p>
                       </div>
-                      <Button variant="destructive" size="sm">
-                        Remove
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => handleUnassignTeacher(selectedSubject.name, teacher.name)}
+                      >
+                        <UserMinus className="w-4 h-4" />
+                        Unassign
                       </Button>
                     </div>
                   ))}

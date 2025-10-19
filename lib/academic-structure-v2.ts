@@ -399,12 +399,20 @@ export function getBranchDetails(degreeId: string, branchId: string, batch: numb
   
   const branchSubjects = getSubjects({ degreeId, branchId, batch });
   
+  // Import demoStudents to calculate student count
+  // Note: In real app, this would be a database query
+  const { demoStudents } = require('./demo-data-v2');
+  const studentCount = demoStudents.filter(
+    (s: any) => s.branchId === branchId && s.batch === batch
+  ).length;
+  
   return {
     degree,
     branch,
     batch,
     subjects: branchSubjects,
     totalSubjects: branchSubjects.length,
+    studentCount,
   };
 }
 

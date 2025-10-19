@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
     icon: <GraduationCap className="w-5 h-5" />,
   },
   {
-    title: "Courses",
+    title: "Subject Assignment",
     href: "/admin/courses",
     icon: <BookOpen className="w-5 h-5" />,
   },

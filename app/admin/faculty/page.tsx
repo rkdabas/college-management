@@ -5,14 +5,13 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Users, BookOpen, Eye, Building2 } from "lucide-react";
+import { Plus, Search, Users, Eye, Building2 } from "lucide-react";
 import { demoTeachers } from "@/lib/demo-data-v2";
 import { departments } from "@/lib/departments";
 
 export default function FacultyPage() {
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "assignments">("list");
 
   // Filter faculty by department and search
   const filteredFaculty = demoTeachers.filter((faculty) => {
@@ -31,14 +30,6 @@ export default function FacultyPage() {
     return demoTeachers.filter((f) => f.departmentId === deptId).length;
   };
 
-  // Get all teaching assignments
-  const allAssignments = demoTeachers.flatMap((teacher) =>
-    teacher.subjects.map((subject) => ({
-      teacher,
-      subject,
-    }))
-  );
-
   const resetFilters = () => {
     setSelectedDepartment("");
     setSearchQuery("");
@@ -50,7 +41,7 @@ export default function FacultyPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Faculty Management</h1>
-          <p className="text-gray-600 mt-1">Manage faculty members and their assignments</p>
+          <p className="text-gray-600 mt-1">Manage faculty members and their information</p>
         </div>
         <Link href="/admin/faculty/add">
           <Button className="gap-2">
@@ -61,7 +52,7 @@ export default function FacultyPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -94,56 +85,18 @@ export default function FacultyPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Teaching Assignments</p>
-                <p className="text-3xl font-bold mt-1">{allAssignments.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
                 <p className="text-sm text-gray-600">Avg. Experience</p>
                 <p className="text-3xl font-bold mt-1">
                   {(demoTeachers.reduce((sum, f) => sum + f.experience, 0) / demoTeachers.length).toFixed(1)} yrs
                 </p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-orange-600" />
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* View Mode Tabs */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              onClick={() => setViewMode("list")}
-              className="gap-2"
-            >
-              <Users className="w-4 h-4" />
-              Faculty List
-            </Button>
-            <Button
-              variant={viewMode === "assignments" ? "default" : "outline"}
-              onClick={() => setViewMode("assignments")}
-              className="gap-2"
-            >
-              <BookOpen className="w-4 h-4" />
-              Teaching Assignments
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Filters */}
       <Card>
@@ -189,7 +142,7 @@ export default function FacultyPage() {
       </Card>
 
       {/* Department-wise Faculty Count */}
-      {!selectedDepartment && viewMode === "list" && (
+      {!selectedDepartment && (
         <Card>
           <CardHeader>
             <CardTitle>Department-wise Faculty Distribution</CardTitle>
@@ -221,8 +174,7 @@ export default function FacultyPage() {
       )}
 
       {/* Faculty List View */}
-      {viewMode === "list" && (
-        <Card>
+      <Card>
           <CardHeader>
             <CardTitle>
               {selectedDepartment
@@ -306,62 +258,6 @@ export default function FacultyPage() {
             )}
           </CardContent>
         </Card>
-      )}
-
-      {/* Teaching Assignments View */}
-      {viewMode === "assignments" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Teaching Assignments ({allAssignments.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {allAssignments.length === 0 ? (
-              <div className="text-center py-12">
-                <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-lg font-medium text-gray-900">No assignments found</p>
-                <p className="text-sm text-gray-600 mt-1">No subjects are currently assigned to faculty members</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Teacher</th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Department</th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Subject</th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Degree</th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Branch</th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Semester</th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Batch</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allAssignments.map((assignment, index) => (
-                      <tr key={index} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-4">
-                          <p className="font-medium text-gray-900">{assignment.teacher.name}</p>
-                          <p className="text-xs text-gray-500">{assignment.teacher.employeeId}</p>
-                        </td>
-                        <td className="py-3 px-4">
-                          <Badge variant="outline">{assignment.teacher.departmentName}</Badge>
-                        </td>
-                        <td className="py-3 px-4">
-                          <p className="font-medium">{assignment.subject.subjectName}</p>
-                          <p className="text-xs text-gray-500">{assignment.subject.subjectCode}</p>
-                        </td>
-                        <td className="py-3 px-4 text-sm">{assignment.subject.degreeName}</td>
-                        <td className="py-3 px-4 text-sm">{assignment.subject.branchName}</td>
-                        <td className="py-3 px-4 text-sm text-center">{assignment.subject.semester}</td>
-                        <td className="py-3 px-4 text-sm text-center">{assignment.subject.batch}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Search, Filter as FilterIcon, Download, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Calendar, Search, Filter as FilterIcon, Download, CheckCircle, XCircle, Clock, X, User } from "lucide-react";
 import { demoStudents } from "@/lib/demo-data-v2";
 import { degrees, branches, batches, getBranchesByDegreeId } from "@/lib/academic-structure-v2";
 
@@ -14,6 +14,11 @@ export default function AttendancePage() {
   const [selectedBatch, setSelectedBatch] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showStudentDetails, setShowStudentDetails] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+
+  // Attendance state (in real app, this would come from database)
+  const [attendanceRecords, setAttendanceRecords] = useState<Record<string, { status: string; leaveType?: string }>>({});
 
   const availableBranches = selectedDegree ? getBranchesByDegreeId(selectedDegree) : branches;
 
@@ -26,12 +31,20 @@ export default function AttendancePage() {
     return true;
   });
 
-  // Generate mock attendance data
-  const attendanceData = filteredStudents.map((student) => ({
-    ...student,
-    attendance: Math.random() > 0.2 ? "present" : Math.random() > 0.5 ? "absent" : "leave",
-    percentage: 75 + Math.random() * 20, // Random percentage between 75-95
-  }));
+  // Generate attendance data with state
+  const attendanceData = filteredStudents.map((student) => {
+    const record = attendanceRecords[student.id] || {
+      status: Math.random() > 0.2 ? "present" : Math.random() > 0.5 ? "absent" : "leave",
+      leaveType: Math.random() > 0.5 ? "sick" : "casual",
+    };
+    
+    return {
+      ...student,
+      attendance: record.status,
+      leaveType: record.leaveType,
+      percentage: 75 + Math.random() * 20, // Random percentage between 75-95
+    };
+  });
 
   const presentCount = attendanceData.filter(s => s.attendance === "present").length;
   const absentCount = attendanceData.filter(s => s.attendance === "absent").length;
@@ -49,6 +62,30 @@ export default function AttendancePage() {
 
   const hasActiveFilters = selectedDegree || selectedBranch || selectedBatch || selectedSemester;
 
+  const markAttendance = (studentId: string, status: "present" | "absent" | "leave") => {
+    setAttendanceRecords((prev) => ({
+      ...prev,
+      [studentId]: {
+        status,
+        leaveType: status === "leave" ? "sick" : undefined,
+      },
+    }));
+  };
+
+  const markAllPresent = () => {
+    const newRecords: Record<string, { status: string }> = {};
+    filteredStudents.forEach((student) => {
+      newRecords[student.id] = { status: "present" };
+    });
+    setAttendanceRecords(newRecords);
+    alert("All students marked present!");
+  };
+
+  const viewStudentDetails = (student: any) => {
+    setSelectedStudent(student);
+    setShowStudentDetails(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -61,9 +98,9 @@ export default function AttendancePage() {
             <Download className="w-4 h-4" />
             Export
           </Button>
-          <Button className="gap-2">
-            <Calendar className="w-4 h-4" />
-            Mark Attendance
+          <Button className="gap-2" onClick={markAllPresent} disabled={filteredStudents.length === 0}>
+            <CheckCircle className="w-4 h-4" />
+            Mark All Present
           </Button>
         </div>
       </div>
@@ -256,14 +293,19 @@ export default function AttendancePage() {
                     <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Degree</th>
                     <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Branch</th>
                     <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Semester</th>
-                    <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Batch</th>
                     <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Overall %</th>
-                    <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Today's Status</th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Status</th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Leave Type</th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {attendanceData.map((student) => (
-                    <tr key={student.id} className="border-b hover:bg-gray-50">
+                    <tr
+                      key={student.id}
+                      className="border-b hover:bg-gray-50 cursor-pointer"
+                      onClick={() => viewStudentDetails(student)}
+                    >
                       <td className="py-3 px-4 font-medium">{student.rollNo}</td>
                       <td className="py-3 px-4">
                         <p className="font-medium text-gray-900">{student.name}</p>
@@ -273,7 +315,6 @@ export default function AttendancePage() {
                       </td>
                       <td className="py-3 px-4 text-sm">{student.branchCode}</td>
                       <td className="py-3 px-4 text-sm">{student.semester}</td>
-                      <td className="py-3 px-4 text-sm">{student.batch}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <div className="w-16 bg-gray-200 rounded-full h-2">
@@ -291,18 +332,62 @@ export default function AttendancePage() {
                           <span className="text-sm font-medium">{student.percentage.toFixed(1)}%</span>
                         </div>
                       </td>
+                      <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => markAttendance(student.id, "present")}
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              student.attendance === "present"
+                                ? "bg-green-100 text-green-700 border border-green-300"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
+                          >
+                            Present
+                          </button>
+                          <button
+                            onClick={() => markAttendance(student.id, "absent")}
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              student.attendance === "absent"
+                                ? "bg-red-100 text-red-700 border border-red-300"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
+                          >
+                            Absent
+                          </button>
+                          <button
+                            onClick={() => markAttendance(student.id, "leave")}
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              student.attendance === "leave"
+                                ? "bg-orange-100 text-orange-700 border border-orange-300"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
+                          >
+                            Leave
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm">
+                        {student.attendance === "leave" ? (
+                          <Badge variant="outline" className="capitalize">
+                            {student.leaveType}
+                          </Badge>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
                       <td className="py-3 px-4">
-                        <Badge
-                          variant={
-                            student.attendance === "present"
-                              ? "success"
-                              : student.attendance === "absent"
-                              ? "destructive"
-                              : "warning"
-                          }
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            viewStudentDetails(student);
+                          }}
                         >
-                          {student.attendance}
-                        </Badge>
+                          <User className="w-4 h-4" />
+                          View
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -312,6 +397,152 @@ export default function AttendancePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Student Details Modal */}
+      {showStudentDetails && selectedStudent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Student Details</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setShowStudentDetails(false);
+                  setSelectedStudent(null);
+                }}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Personal Information */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-primary">Personal Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Name</p>
+                    <p className="font-medium">{selectedStudent.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Roll Number</p>
+                    <p className="font-medium">{selectedStudent.rollNo}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="font-medium text-sm">{selectedStudent.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Phone</p>
+                    <p className="font-medium">{selectedStudent.phone}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Date of Birth</p>
+                    <p className="font-medium">{new Date(selectedStudent.dateOfBirth).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Admission Date</p>
+                    <p className="font-medium">{new Date(selectedStudent.admissionDate).toLocaleDateString()}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-sm text-gray-600">Address</p>
+                    <p className="font-medium">{selectedStudent.address}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Academic Information */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-primary">Academic Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Degree</p>
+                    <p className="font-medium">{selectedStudent.degreeName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Branch</p>
+                    <p className="font-medium">{selectedStudent.branchName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Batch</p>
+                    <p className="font-medium">{selectedStudent.batch}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Current Semester</p>
+                    <p className="font-medium">{selectedStudent.semester}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Status</p>
+                    <Badge variant={selectedStudent.status === "active" ? "success" : "secondary"}>
+                      {selectedStudent.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Overall Attendance</p>
+                    <p className="font-medium text-primary">{selectedStudent.percentage.toFixed(1)}%</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Guardian Information */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-primary">Guardian Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Guardian Name</p>
+                    <p className="font-medium">{selectedStudent.guardianName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Guardian Phone</p>
+                    <p className="font-medium">{selectedStudent.guardianPhone}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Attendance Status for Selected Date */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-primary">Today's Attendance</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-gray-600">Date: {new Date(selectedDate).toLocaleDateString()}</span>
+                    <Badge
+                      variant={
+                        selectedStudent.attendance === "present"
+                          ? "success"
+                          : selectedStudent.attendance === "absent"
+                          ? "destructive"
+                          : "warning"
+                      }
+                    >
+                      {selectedStudent.attendance}
+                    </Badge>
+                  </div>
+                  {selectedStudent.attendance === "leave" && (
+                    <div className="mt-2">
+                      <span className="text-sm text-gray-600">Leave Type: </span>
+                      <span className="font-medium capitalize">{selectedStudent.leaveType}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowStudentDetails(false);
+                  setSelectedStudent(null);
+                }}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
