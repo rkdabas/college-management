@@ -10,11 +10,11 @@ import { demoEvents } from "@/lib/demo-data-v2";
 import { formatDate } from "@/lib/utils";
 
 const eventTypeColors: Record<string, string> = {
-  academic: "bg-blue-100 text-blue-700",
-  cultural: "bg-purple-100 text-purple-700",
-  sports: "bg-green-100 text-green-700",
-  workshop: "bg-orange-100 text-orange-700",
-  seminar: "bg-pink-100 text-pink-700",
+  academic: "bg-sky-100 text-sky-700",
+  cultural: "bg-amber-100 text-amber-700",
+  sports: "bg-emerald-100 text-emerald-700",
+  workshop: "bg-gray-100 text-gray-700",
+  seminar: "bg-slate-100 text-slate-700",
   other: "bg-gray-100 text-gray-700",
 };
 
@@ -143,7 +143,7 @@ export default function EventsPage() {
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedStatus("upcoming")}>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">{upcomingCount}</p>
+              <p className="text-3xl font-bold text-gray-900">{upcomingCount}</p>
               <p className="text-sm text-gray-600 mt-1">Upcoming</p>
             </div>
           </CardContent>
@@ -151,7 +151,7 @@ export default function EventsPage() {
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedStatus("ongoing")}>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">{ongoingCount}</p>
+              <p className="text-3xl font-bold text-gray-900">{ongoingCount}</p>
               <p className="text-sm text-gray-600 mt-1">Ongoing</p>
             </div>
           </CardContent>
@@ -159,7 +159,7 @@ export default function EventsPage() {
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedStatus("completed")}>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-gray-600">{completedCount}</p>
+              <p className="text-3xl font-bold text-gray-900">{completedCount}</p>
               <p className="text-sm text-gray-600 mt-1">Completed</p>
             </div>
           </CardContent>
@@ -167,7 +167,7 @@ export default function EventsPage() {
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedStatus("cancelled")}>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-orange-600">{cancelledCount}</p>
+              <p className="text-3xl font-bold text-gray-900">{cancelledCount}</p>
               <p className="text-sm text-gray-600 mt-1">Cancelled</p>
             </div>
           </CardContent>
@@ -546,7 +546,7 @@ export default function EventsPage() {
 
             {/* Summary */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <p className="text-sm font-medium text-blue-900">
+              <p className="text-sm font-medium text-gray-900">
                 📧 Email notification will be sent to:{" "}
                 <span className="font-bold">
                   {notificationAudience.includes("all")

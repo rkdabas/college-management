@@ -52,16 +52,16 @@ export default function FacultyPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Faculty</p>
-                <p className="text-3xl font-bold mt-1">{demoTeachers.length}</p>
+                <p className="text-3xl font-bold mt-1 text-gray-900">{demoTeachers.length}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-sky-600" />
               </div>
             </div>
           </CardContent>
@@ -72,26 +72,10 @@ export default function FacultyPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Departments</p>
-                <p className="text-3xl font-bold mt-1">{departments.length}</p>
+                <p className="text-3xl font-bold mt-1 text-gray-900">{departments.length}</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg. Experience</p>
-                <p className="text-3xl font-bold mt-1">
-                  {(demoTeachers.reduce((sum, f) => sum + f.experience, 0) / demoTeachers.length).toFixed(1)} yrs
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-emerald-600" />
               </div>
             </div>
           </CardContent>
@@ -154,17 +138,17 @@ export default function FacultyPage() {
                 return (
                   <div
                     key={dept.id}
-                    className="border-2 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all hover:border-primary"
+                    className="border-2 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all hover:border-sky-600"
                     onClick={() => setSelectedDepartment(dept.id)}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <div className="w-10 h-10 bg-gradient-to-br from-sky-600 to-sky-700 rounded-lg flex items-center justify-center">
                         <Building2 className="w-5 h-5 text-white" />
                       </div>
                       <Badge variant="outline">{dept.code}</Badge>
                     </div>
                     <h3 className="font-semibold text-sm mb-1">{dept.name}</h3>
-                    <p className="text-2xl font-bold text-primary">{count} Faculty</p>
+                    <p className="text-2xl font-bold text-gray-900">{count} Faculty</p>
                   </div>
                 );
               })}
@@ -179,7 +163,7 @@ export default function FacultyPage() {
             <CardTitle>
               {selectedDepartment
                 ? `${departments.find((d) => d.id === selectedDepartment)?.name} Faculty (${filteredFaculty.length})`
-                : `All Faculty (${filteredFaculty.length})`}
+                : `Faculty Members (${filteredFaculty.length})`}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -218,11 +202,11 @@ export default function FacultyPage() {
                     <div className="space-y-2 mb-3 text-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Experience:</span>
-                        <span className="font-medium">{faculty.experience} years</span>
+                        <span className="font-medium text-gray-900">{faculty.experience} years</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Subjects Teaching:</span>
-                        <span className="font-semibold text-primary">{faculty.subjects.length}</span>
+                        <span className="font-semibold text-gray-900">{faculty.subjects.length}</span>
                       </div>
                     </div>
 

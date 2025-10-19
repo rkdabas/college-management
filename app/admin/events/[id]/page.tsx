@@ -9,11 +9,11 @@ import { demoEvents } from "@/lib/demo-data-v2";
 import { formatDate } from "@/lib/utils";
 
 const eventTypeColors: Record<string, string> = {
-  academic: "bg-blue-100 text-blue-700",
-  cultural: "bg-purple-100 text-purple-700",
-  sports: "bg-green-100 text-green-700",
-  workshop: "bg-orange-100 text-orange-700",
-  seminar: "bg-pink-100 text-pink-700",
+  academic: "bg-sky-100 text-sky-700",
+  cultural: "bg-amber-100 text-amber-700",
+  sports: "bg-emerald-100 text-emerald-700",
+  workshop: "bg-gray-100 text-gray-700",
+  seminar: "bg-slate-100 text-slate-700",
   other: "bg-gray-100 text-gray-700",
 };
 
@@ -165,16 +165,16 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 pt-4">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <p className="text-2xl font-bold text-blue-600">{registeredParticipants}</p>
+                  <div className="text-center p-3 bg-sky-50 rounded-lg">
+                    <p className="text-2xl font-bold text-gray-900">{registeredParticipants}</p>
                     <p className="text-xs text-gray-600 mt-1">Registered</p>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600">{Math.floor(registeredParticipants * 0.9)}</p>
+                  <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                    <p className="text-2xl font-bold text-gray-900">{Math.floor(registeredParticipants * 0.9)}</p>
                     <p className="text-xs text-gray-600 mt-1">Confirmed</p>
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-gray-600">{event.participants - registeredParticipants}</p>
+                    <p className="text-2xl font-bold text-gray-900">{event.participants - registeredParticipants}</p>
                     <p className="text-xs text-gray-600 mt-1">Available</p>
                   </div>
                 </div>

@@ -169,8 +169,8 @@ export default function LibraryPage() {
                 <p className="text-sm text-gray-600">Total Books</p>
                 <p className="text-2xl font-bold mt-1">{totalBooks}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-sky-600" />
               </div>
             </div>
           </CardContent>
@@ -181,10 +181,10 @@ export default function LibraryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Available</p>
-                <p className="text-2xl font-bold mt-1 text-green-600">{availableBooks}</p>
+                <p className="text-2xl font-bold mt-1 text-gray-900">{availableBooks}</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-emerald-600" />
               </div>
             </div>
           </CardContent>
@@ -195,10 +195,10 @@ export default function LibraryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Issued</p>
-                <p className="text-2xl font-bold mt-1 text-orange-600">{issuedBooksCount}</p>
+                <p className="text-2xl font-bold mt-1 text-gray-900">{issuedBooksCount}</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <BookMarked className="w-6 h-6 text-orange-600" />
+              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                <BookMarked className="w-6 h-6 text-amber-600" />
               </div>
             </div>
           </CardContent>
@@ -209,7 +209,7 @@ export default function LibraryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold mt-1 text-red-600">{overdueCount}</p>
+                <p className="text-2xl font-bold mt-1 text-gray-900">{overdueCount}</p>
               </div>
               <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
                 <AlertCircle className="w-6 h-6 text-red-600" />
@@ -223,10 +223,10 @@ export default function LibraryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Members</p>
-                <p className="text-2xl font-bold mt-1 text-purple-600">{activeMembers}</p>
+                <p className="text-2xl font-bold mt-1 text-gray-900">{activeMembers}</p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-slate-600" />
               </div>
             </div>
           </CardContent>
@@ -237,10 +237,10 @@ export default function LibraryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Fines</p>
-                <p className="text-2xl font-bold mt-1 text-indigo-600">₹{totalFines}</p>
+                <p className="text-2xl font-bold mt-1 text-gray-900">₹{totalFines}</p>
               </div>
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-indigo-600" />
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-gray-600" />
               </div>
             </div>
           </CardContent>
@@ -864,22 +864,22 @@ export default function LibraryPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="border rounded-lg p-4 text-center">
                   <p className="text-gray-600 text-sm mb-2">Books Issued (This Month)</p>
-                  <p className="text-3xl font-bold text-blue-600">142</p>
+                  <p className="text-3xl font-bold text-gray-900">142</p>
                   <p className="text-xs text-green-600 mt-1">↑ 12% from last month</p>
                 </div>
                 <div className="border rounded-lg p-4 text-center">
                   <p className="text-gray-600 text-sm mb-2">Books Returned</p>
-                  <p className="text-3xl font-bold text-green-600">128</p>
+                  <p className="text-3xl font-bold text-gray-900">128</p>
                   <p className="text-xs text-green-600 mt-1">↑ 8% from last month</p>
                 </div>
                 <div className="border rounded-lg p-4 text-center">
                   <p className="text-gray-600 text-sm mb-2">New Registrations</p>
-                  <p className="text-3xl font-bold text-purple-600">45</p>
+                  <p className="text-3xl font-bold text-gray-900">45</p>
                   <p className="text-xs text-red-600 mt-1">↓ 5% from last month</p>
                 </div>
                 <div className="border rounded-lg p-4 text-center">
                   <p className="text-gray-600 text-sm mb-2">Fines Collected</p>
-                  <p className="text-3xl font-bold text-orange-600">₹8,450</p>
+                  <p className="text-3xl font-bold text-gray-900">₹8,450</p>
                   <p className="text-xs text-red-600 mt-1">↓ 15% from last month</p>
                 </div>
               </div>

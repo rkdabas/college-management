@@ -115,10 +115,10 @@ export default function AcademicStructurePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Degrees</p>
-                <p className="text-3xl font-bold mt-1">{degrees.length}</p>
+                <p className="text-3xl font-bold mt-1 text-gray-900">{degrees.length}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-sky-600" />
               </div>
             </div>
           </CardContent>
@@ -129,10 +129,10 @@ export default function AcademicStructurePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Branches</p>
-                <p className="text-3xl font-bold mt-1">{branches.length}</p>
+                <p className="text-3xl font-bold mt-1 text-gray-900">{branches.length}</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-emerald-600" />
               </div>
             </div>
           </CardContent>
@@ -143,10 +143,10 @@ export default function AcademicStructurePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Active Batches</p>
-                <p className="text-3xl font-bold mt-1">{batches.filter((b) => b.isActive).length}</p>
+                <p className="text-3xl font-bold mt-1 text-gray-900">{batches.filter((b) => b.isActive).length}</p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-amber-600" />
               </div>
             </div>
           </CardContent>
@@ -232,7 +232,7 @@ export default function AcademicStructurePage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Students:</span>
-                        <span className="font-semibold text-primary">{batch.studentsCount}</span>
+                        <span className="font-semibold text-gray-900">{batch.studentsCount}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Branches:</span>
@@ -313,7 +313,7 @@ export default function AcademicStructurePage() {
                       onClick={() => setSelectedBranch(branch.id)}
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-sky-600 to-sky-700 rounded-lg flex items-center justify-center">
                           <BookOpen className="w-6 h-6 text-white" />
                         </div>
                         <Badge variant="outline">{branch.code}</Badge>
@@ -324,7 +324,7 @@ export default function AcademicStructurePage() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600">Students:</span>
-                          <span className="font-semibold text-primary">{studentCount}</span>
+                          <span className="font-semibold text-gray-900">{studentCount}</span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600">Capacity:</span>
@@ -398,7 +398,7 @@ export default function AcademicStructurePage() {
             {/* Branch Info */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-sky-600 to-sky-700 rounded-lg flex items-center justify-center">
                   <BookOpen className="w-8 h-8 text-white" />
                 </div>
                 <div>
@@ -410,21 +410,21 @@ export default function AcademicStructurePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                <div className="bg-blue-50 rounded-lg p-4 text-center">
+                <div className="bg-sky-50 rounded-lg p-4 text-center">
                   <p className="text-sm text-gray-600">Branch Code</p>
-                  <p className="text-xl font-bold text-blue-600 mt-1">{branchDetails.branch.code}</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{branchDetails.branch.code}</p>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4 text-center">
+                <div className="bg-emerald-50 rounded-lg p-4 text-center">
                   <p className="text-sm text-gray-600">Total Students</p>
-                  <p className="text-xl font-bold text-green-600 mt-1">{branchDetails.studentCount}</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{branchDetails.studentCount}</p>
                 </div>
-                <div className="bg-purple-50 rounded-lg p-4 text-center">
+                <div className="bg-amber-50 rounded-lg p-4 text-center">
                   <p className="text-sm text-gray-600">Capacity</p>
-                  <p className="text-xl font-bold text-purple-600 mt-1">{branchDetails.branch.capacity}</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{branchDetails.branch.capacity}</p>
                 </div>
-                <div className="bg-orange-50 rounded-lg p-4 text-center">
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
                   <p className="text-sm text-gray-600">Duration</p>
-                  <p className="text-xl font-bold text-orange-600 mt-1">
+                  <p className="text-xl font-bold text-gray-900 mt-1">
                     {degrees.find((d) => d.id === selectedDegree)?.duration} Years
                   </p>
                 </div>
@@ -479,7 +479,7 @@ export default function AcademicStructurePage() {
                   return (
                     <div key={sem} className="border rounded-lg p-3 text-center">
                       <p className="text-xs text-gray-600">Semester {sem}</p>
-                      <p className="text-2xl font-bold text-primary mt-1">{semStudents}</p>
+                      <p className="text-2xl font-bold text-gray-900 mt-1">{semStudents}</p>
                     </div>
                   );
                 })}
@@ -503,7 +503,7 @@ export default function AcademicStructurePage() {
                 return (
                   <div key={degree.id} className="border rounded-lg p-5 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-sky-600 to-sky-700 rounded-lg flex items-center justify-center">
                         <GraduationCap className="w-6 h-6 text-white" />
                       </div>
                       <Badge variant="outline">{degree.code}</Badge>
@@ -526,7 +526,7 @@ export default function AcademicStructurePage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Total Students:</span>
-                        <span className="font-semibold text-primary">{degreeStudents.length}</span>
+                        <span className="font-semibold text-gray-900">{degreeStudents.length}</span>
                       </div>
                     </div>
 

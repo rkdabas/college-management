@@ -319,7 +319,7 @@ export default function ReportsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">{allReports.length}</p>
+              <p className="text-3xl font-bold text-gray-900">{allReports.length}</p>
               <p className="text-sm text-gray-600 mt-1">Available Reports</p>
             </div>
           </CardContent>
@@ -327,7 +327,7 @@ export default function ReportsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">8</p>
+              <p className="text-3xl font-bold text-gray-900">8</p>
               <p className="text-sm text-gray-600 mt-1">Report Categories</p>
             </div>
           </CardContent>
@@ -335,7 +335,7 @@ export default function ReportsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-purple-600">3</p>
+              <p className="text-3xl font-bold text-gray-900">3</p>
               <p className="text-sm text-gray-600 mt-1">Export Formats</p>
             </div>
           </CardContent>
@@ -343,7 +343,7 @@ export default function ReportsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-orange-600">{demoStudents.length}</p>
+              <p className="text-3xl font-bold text-gray-900">{demoStudents.length}</p>
               <p className="text-sm text-gray-600 mt-1">Total Records</p>
             </div>
           </CardContent>
@@ -392,8 +392,8 @@ export default function ReportsPage() {
                 onClick={() => setSelectedReport(report)}
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className={`w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center`}>
-                    <report.icon className="w-6 h-6 text-blue-600" />
+                  <div className={`w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center`}>
+                    <report.icon className="w-6 h-6 text-sky-600" />
                   </div>
                   {report.needsFilters && (
                     <Badge variant="outline" className="text-xs">
@@ -437,7 +437,7 @@ export default function ReportsPage() {
                 }}
               >
                 <X className="w-5 h-5" />
-              </Button>
+                </Button>
             </div>
 
             {/* Filters Section */}
@@ -448,80 +448,80 @@ export default function ReportsPage() {
                     <FilterIcon className="w-4 h-4" />
                     Report Filters
                   </CardTitle>
-                </CardHeader>
+          </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Degree Filter */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Degree</label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        value={selectedDegree}
-                        onChange={(e) => {
-                          setSelectedDegree(e.target.value);
-                          setSelectedBranch("");
-                        }}
-                      >
-                        <option value="">All Degrees</option>
-                        {degrees.map((degree) => (
-                          <option key={degree.id} value={degree.id}>
-                            {degree.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Degree</label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={selectedDegree}
+                  onChange={(e) => {
+                    setSelectedDegree(e.target.value);
+                    setSelectedBranch("");
+                  }}
+                >
+                  <option value="">All Degrees</option>
+                  {degrees.map((degree) => (
+                    <option key={degree.id} value={degree.id}>
+                      {degree.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
                     {/* Branch Filter */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Branch</label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        value={selectedBranch}
-                        onChange={(e) => setSelectedBranch(e.target.value)}
-                        disabled={!selectedDegree}
-                      >
-                        <option value="">All Branches</option>
-                        {availableBranches.map((branch) => (
-                          <option key={branch.id} value={branch.id}>
-                            {branch.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Branch</label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={selectedBranch}
+                  onChange={(e) => setSelectedBranch(e.target.value)}
+                  disabled={!selectedDegree}
+                >
+                  <option value="">All Branches</option>
+                  {availableBranches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
                     {/* Batch Filter */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Batch</label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        value={selectedBatch}
-                        onChange={(e) => setSelectedBatch(e.target.value)}
-                      >
-                        <option value="">All Batches</option>
-                        {batches.filter(b => b.isActive).map((batch) => (
-                          <option key={batch.id} value={batch.year}>
-                            {batch.year}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Batch</label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={selectedBatch}
+                  onChange={(e) => setSelectedBatch(e.target.value)}
+                >
+                  <option value="">All Batches</option>
+                  {batches.filter(b => b.isActive).map((batch) => (
+                    <option key={batch.id} value={batch.year}>
+                      {batch.year}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
                     {/* Semester Filter */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Semester</label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        value={selectedSemester}
-                        onChange={(e) => setSelectedSemester(e.target.value)}
-                      >
-                        <option value="">All Semesters</option>
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
-                          <option key={sem} value={sem}>
-                            Semester {sem}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Semester</label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                >
+                  <option value="">All Semesters</option>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                    <option key={sem} value={sem}>
+                      Semester {sem}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
                     {/* Month Filter (for attendance reports) */}
                     {selectedReport.category === "attendance" && (
@@ -539,25 +539,25 @@ export default function ReportsPage() {
                             </option>
                           ))}
                         </select>
-                      </div>
+            </div>
                     )}
 
                     {/* Year Filter */}
-                    <div className="space-y-2">
+              <div className="space-y-2">
                       <label className="text-sm font-medium">Year</label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(e.target.value)}
-                      >
-                        {years.map((year) => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                >
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
                   {/* Filter Summary */}
                   {selectedReport.category === "student" && (
@@ -573,11 +573,11 @@ export default function ReportsPage() {
                           {selectedSemester && ` → Semester ${selectedSemester}`}
                         </p>
                       )}
-                    </div>
+            </div>
                   )}
-                </CardContent>
-              </Card>
-            )}
+          </CardContent>
+        </Card>
+      )}
 
             {/* Export Options */}
             <div className="space-y-3">
@@ -592,7 +592,7 @@ export default function ReportsPage() {
                   >
                     <Download className="w-5 h-5" />
                     <span className="text-sm font-medium">{format}</span>
-                  </Button>
+              </Button>
                 ))}
               </div>
             </div>
@@ -611,7 +611,7 @@ export default function ReportsPage() {
               </Button>
             </div>
           </div>
-        </div>
+                  </div>
       )}
     </div>
   );

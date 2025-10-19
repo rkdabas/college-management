@@ -213,7 +213,7 @@ export default function AnnouncementsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary">{announcements.length}</p>
+              <p className="text-3xl font-bold text-gray-900">{announcements.length}</p>
               <p className="text-sm text-gray-600 mt-1">Total Announcements</p>
             </div>
           </CardContent>
@@ -221,7 +221,7 @@ export default function AnnouncementsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">{publishedCount}</p>
+              <p className="text-3xl font-bold text-gray-900">{publishedCount}</p>
               <p className="text-sm text-gray-600 mt-1">Published</p>
             </div>
           </CardContent>
@@ -229,7 +229,7 @@ export default function AnnouncementsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">{totalReach.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900">{totalReach.toLocaleString()}</p>
               <p className="text-sm text-gray-600 mt-1">Total Reach</p>
             </div>
           </CardContent>
@@ -237,7 +237,7 @@ export default function AnnouncementsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-purple-600">{avgReadRate}%</p>
+              <p className="text-3xl font-bold text-gray-900">{avgReadRate}%</p>
               <p className="text-sm text-gray-600 mt-1">Read Rate</p>
             </div>
           </CardContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,27 +40,98 @@ import { getDegreeWiseStudentCount, getBranchWiseStudentCount, demoStudents, dem
 import { degrees, branches } from "@/lib/academic-structure-v2";
 import Link from "next/link";
 
-// Mock data for attendance trends (last 7 days)
-const attendanceTrends = [
-  { day: "Mon", attendance: 92.5, present: 2631, total: 2847 },
-  { day: "Tue", attendance: 94.2, present: 2681, total: 2847 },
-  { day: "Wed", attendance: 91.8, present: 2614, total: 2847 },
-  { day: "Thu", attendance: 93.5, present: 2662, total: 2847 },
-  { day: "Fri", attendance: 89.6, present: 2551, total: 2847 },
-  { day: "Sat", attendance: 95.1, present: 2707, total: 2847 },
-  { day: "Today", attendance: 93.2, present: 2654, total: 2847 },
-];
+// Mock data for attendance trends (last 7 days) - Degree wise
+const attendanceTrendsByDegree: Record<string, any[]> = {
+  "all": [
+    { day: "Mon", attendance: 92.5, present: 2631, total: 2847 },
+    { day: "Tue", attendance: 94.2, present: 2681, total: 2847 },
+    { day: "Wed", attendance: 91.8, present: 2614, total: 2847 },
+    { day: "Thu", attendance: 93.5, present: 2662, total: 2847 },
+    { day: "Fri", attendance: 89.6, present: 2551, total: 2847 },
+    { day: "Sat", attendance: 95.1, present: 2707, total: 2847 },
+    { day: "Today", attendance: 93.2, present: 2654, total: 2847 },
+  ],
+  "btech": [
+    { day: "Mon", attendance: 93.8, present: 1876, total: 2000 },
+    { day: "Tue", attendance: 95.2, present: 1904, total: 2000 },
+    { day: "Wed", attendance: 92.4, present: 1848, total: 2000 },
+    { day: "Thu", attendance: 94.1, present: 1882, total: 2000 },
+    { day: "Fri", attendance: 90.3, present: 1806, total: 2000 },
+    { day: "Sat", attendance: 96.0, present: 1920, total: 2000 },
+    { day: "Today", attendance: 94.5, present: 1890, total: 2000 },
+  ],
+  "mba": [
+    { day: "Mon", attendance: 89.5, present: 358, total: 400 },
+    { day: "Tue", attendance: 91.8, present: 367, total: 400 },
+    { day: "Wed", attendance: 88.2, present: 353, total: 400 },
+    { day: "Thu", attendance: 90.5, present: 362, total: 400 },
+    { day: "Fri", attendance: 86.0, present: 344, total: 400 },
+    { day: "Sat", attendance: 92.5, present: 370, total: 400 },
+    { day: "Today", attendance: 89.8, present: 359, total: 400 },
+  ],
+  "mtech": [
+    { day: "Mon", attendance: 91.2, present: 274, total: 300 },
+    { day: "Tue", attendance: 93.0, present: 279, total: 300 },
+    { day: "Wed", attendance: 90.0, present: 270, total: 300 },
+    { day: "Thu", attendance: 92.3, present: 277, total: 300 },
+    { day: "Fri", attendance: 88.7, present: 266, total: 300 },
+    { day: "Sat", attendance: 94.3, present: 283, total: 300 },
+    { day: "Today", attendance: 91.7, present: 275, total: 300 },
+  ],
+  "bca": [
+    { day: "Mon", attendance: 90.0, present: 123, total: 147 },
+    { day: "Tue", attendance: 92.5, present: 131, total: 147 },
+    { day: "Wed", attendance: 89.8, present: 143, total: 147 },
+    { day: "Thu", attendance: 91.2, present: 141, total: 147 },
+    { day: "Fri", attendance: 87.8, present: 135, total: 147 },
+    { day: "Sat", attendance: 93.2, present: 134, total: 147 },
+    { day: "Today", attendance: 90.5, present: 130, total: 147 },
+  ],
+};
 
-// Mock data for monthly enrollment trends
-const enrollmentTrends = [
-  { month: "Jan", students: 2650 },
-  { month: "Feb", students: 2680 },
-  { month: "Mar", students: 2720 },
-  { month: "Apr", students: 2750 },
-  { month: "May", students: 2780 },
-  { month: "Jun", students: 2810 },
-  { month: "Jul", students: 2847 },
-];
+// Mock data for yearly enrollment trends - Degree wise
+const enrollmentTrendsByDegree: Record<string, any[]> = {
+  "all": [
+    { year: "2019", students: 2450 },
+    { year: "2020", students: 2580 },
+    { year: "2021", students: 2650 },
+    { year: "2022", students: 2720 },
+    { year: "2023", students: 2780 },
+    { year: "2024", students: 2847 },
+  ],
+  "btech": [
+    { year: "2019", students: 1750 },
+    { year: "2020", students: 1820 },
+    { year: "2021", students: 1880 },
+    { year: "2022", students: 1920 },
+    { year: "2023", students: 1970 },
+    { year: "2024", students: 2000 },
+  ],
+  "mba": [
+    { year: "2019", students: 350 },
+    { year: "2020", students: 365 },
+    { year: "2021", students: 375 },
+    { year: "2022", students: 385 },
+    { year: "2023", students: 395 },
+    { year: "2024", students: 400 },
+  ],
+  "mtech": [
+    { year: "2019", students: 220 },
+    { year: "2020", students: 245 },
+    { year: "2021", students: 265 },
+    { year: "2022", students: 280 },
+    { year: "2023", students: 290 },
+    { year: "2024", students: 300 },
+  ],
+  "bca": [
+    { year: "2019", students: 130 },
+    { year: "2020", students: 150 },
+    { year: "2021", students: 130 },
+    { year: "2022", students: 135 },
+    { year: "2023", students: 145 },
+    { year: "2024", students: 147 },
+  ],
+};
 
 // Mock data for department-wise faculty distribution
 const facultyDistribution = [
@@ -95,10 +167,10 @@ const upcomingEvents = demoEvents
 
 // Recent activities (mock)
 const recentActivities = [
-  { id: 1, type: "enrollment", message: "5 new students enrolled in B.Tech CSE", time: "2 hours ago", icon: UserPlus, color: "text-blue-600", bg: "bg-blue-50" },
-  { id: 2, type: "event", message: "Annual Tech Fest 2025 registration opened", time: "3 hours ago", icon: Calendar, color: "text-purple-600", bg: "bg-purple-50" },
-  { id: 3, type: "announcement", message: "Mid-term examination schedule released", time: "5 hours ago", icon: Bell, color: "text-orange-600", bg: "bg-orange-50" },
-  { id: 4, type: "library", message: "45 new books added to library", time: "1 day ago", icon: Library, color: "text-green-600", bg: "bg-green-50" },
+  { id: 1, type: "enrollment", message: "5 new students enrolled in B.Tech CSE", time: "2 hours ago", icon: UserPlus, color: "text-sky-600", bg: "bg-sky-50" },
+  { id: 2, type: "event", message: "Annual Tech Fest 2025 registration opened", time: "3 hours ago", icon: Calendar, color: "text-amber-600", bg: "bg-amber-50" },
+  { id: 3, type: "announcement", message: "Mid-term examination schedule released", time: "5 hours ago", icon: Bell, color: "text-gray-600", bg: "bg-gray-50" },
+  { id: 4, type: "library", message: "45 new books added to library", time: "1 day ago", icon: Library, color: "text-emerald-600", bg: "bg-emerald-50" },
 ];
 
 // Low attendance alerts (mock)
@@ -109,12 +181,17 @@ const lowAttendanceAlerts = [
 ];
 
 export default function DashboardPage() {
+  const [selectedDegree, setSelectedDegree] = useState("all");
+  const [selectedEnrollmentDegree, setSelectedEnrollmentDegree] = useState("all");
+  const attendanceTrends = attendanceTrendsByDegree[selectedDegree] || attendanceTrendsByDegree["all"];
+  const enrollmentTrends = enrollmentTrendsByDegree[selectedEnrollmentDegree] || enrollmentTrendsByDegree["all"];
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Welcome back! Here's your institutional overview.</p>
         </div>
         <div className="flex gap-2">
@@ -132,54 +209,26 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Students</p>
-                <p className="text-3xl font-bold mt-2">{totalStudents.toLocaleString()}</p>
-                <div className="flex items-center gap-1 mt-2">
-                  <TrendingUp className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600 font-medium">+12.5%</span>
-                  <span className="text-sm text-gray-500">vs last year</span>
-                </div>
+                <p className="text-3xl font-bold mt-2 text-gray-900">{totalStudents.toLocaleString()}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-sky-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
                 <p className="text-sm font-medium text-gray-600">Total Faculty</p>
-                <p className="text-3xl font-bold mt-2">{totalTeachers}</p>
-                <div className="flex items-center gap-1 mt-2">
-                  <TrendingUp className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600 font-medium">+3.2%</span>
-                  <span className="text-sm text-gray-500">vs last year</span>
-                </div>
+                <p className="text-3xl font-bold mt-2 text-gray-900">{totalTeachers}</p>
               </div>
-              <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-emerald-600" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Today's Attendance</p>
-                <p className="text-3xl font-bold mt-2">{todayAttendance}%</p>
-                <div className="flex items-center gap-1 mt-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-gray-600">{presentToday} present</span>
-                </div>
-              </div>
-              <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
+                  </div>
           </CardContent>
         </Card>
 
@@ -188,14 +237,14 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Programs</p>
-                <p className="text-3xl font-bold mt-2">{activeDegrees}</p>
+                <p className="text-3xl font-bold mt-2 text-gray-900">{activeDegrees}</p>
                 <div className="flex items-center gap-1 mt-2">
-                  <BookOpen className="w-4 h-4 text-orange-600" />
+                  <BookOpen className="w-4 h-4 text-gray-600" />
                   <span className="text-sm text-gray-600">{totalBranches} branches</span>
                 </div>
               </div>
-              <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-orange-600" />
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-gray-600" />
               </div>
             </div>
           </CardContent>
@@ -206,7 +255,20 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Weekly Attendance Trend</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Weekly Attendance Trend - Degree Wise</CardTitle>
+              <select
+                value={selectedDegree}
+                onChange={(e) => setSelectedDegree(e.target.value)}
+                className="px-4 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 bg-white"
+              >
+                <option value="all">All Degrees</option>
+                <option value="btech">B.Tech</option>
+                <option value="mba">MBA</option>
+                <option value="mtech">M.Tech</option>
+                <option value="bca">BCA</option>
+              </select>
+            </div>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -251,27 +313,27 @@ export default function DashboardPage() {
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-2xl font-bold text-green-600">{presentToday}</span>
+                  <span className="text-2xl font-bold text-gray-900">{presentToday}</span>
                 </div>
                 <p className="text-xs text-gray-600">Present</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <XCircle className="w-4 h-4 text-red-600" />
-                  <span className="text-2xl font-bold text-red-600">{absentToday}</span>
+                  <span className="text-2xl font-bold text-gray-900">{absentToday}</span>
                 </div>
                 <p className="text-xs text-gray-600">Absent</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
-                  <Clock className="w-4 h-4 text-orange-600" />
-                  <span className="text-2xl font-bold text-orange-600">{onLeaveToday}</span>
+                  <Clock className="w-4 h-4 text-amber-600" />
+                  <span className="text-2xl font-bold text-gray-900">{onLeaveToday}</span>
                 </div>
                 <p className="text-xs text-gray-600">On Leave</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
         <Card>
           <CardHeader>
@@ -311,13 +373,26 @@ export default function DashboardPage() {
         {/* Enrollment Trends */}
         <Card>
           <CardHeader>
-            <CardTitle>Student Enrollment Trend</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Student Enrollment Trend - Degree Wise</CardTitle>
+              <select
+                value={selectedEnrollmentDegree}
+                onChange={(e) => setSelectedEnrollmentDegree(e.target.value)}
+                className="px-4 py-2 border-2 border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 bg-white"
+              >
+                <option value="all">All Degrees</option>
+                <option value="btech">B.Tech</option>
+                <option value="mba">MBA</option>
+                <option value="mtech">M.Tech</option>
+                <option value="bca">BCA</option>
+              </select>
+            </div>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={enrollmentTrends}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey="year" />
                 <YAxis />
                 <Tooltip />
                 <Line 

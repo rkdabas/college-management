@@ -84,21 +84,21 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 text-white">
-      <div className="p-6 border-b border-gray-800">
+    <div className="flex flex-col h-full bg-white shadow-xl">
+      <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <GraduationCap className="w-6 h-6" />
+          <div className="w-11 h-11 bg-gradient-to-br from-sky-600 to-sky-700 rounded-xl flex items-center justify-center shadow-md shadow-sky-600/20">
+            <GraduationCap className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="font-bold text-lg">College ERP</h2>
-            <p className="text-xs text-gray-400">Admin Portal</p>
+            <h2 className="font-bold text-lg tracking-tight text-gray-900">JIMS ERP</h2>
+            <p className="text-xs text-gray-500 font-medium">Admin Portal</p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 scrollbar-hide">
-        <div className="space-y-1 px-3">
+      <nav className="flex-1 overflow-y-auto py-6 px-3 scrollbar-professional">
+        <div className="space-y-1.5">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -106,20 +106,34 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
                   isActive
-                    ? "bg-primary text-white"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                    ? "bg-gradient-to-r from-sky-600 to-sky-700 text-white shadow-lg shadow-sky-600/20"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 )}
               >
-                {item.icon}
-                {item.title}
+                <span className={cn(
+                  "transition-transform duration-200",
+                  isActive ? "scale-110" : "group-hover:scale-110"
+                )}>
+                  {item.icon}
+                </span>
+                <span className="tracking-tight">{item.title}</span>
               </Link>
             );
           })}
         </div>
       </nav>
+
+      <div className="p-4 border-t border-gray-200">
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
+          <p className="text-xs font-semibold text-gray-700 mb-1">Need Help?</p>
+          <p className="text-xs text-gray-500 mb-3">Contact support team for assistance</p>
+          <button className="w-full px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-lg transition-colors duration-200 border border-gray-200">
+            Get Support
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
-
