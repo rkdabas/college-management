@@ -79,15 +79,15 @@ export default function StudentGradesPage() {
   ];
 
   // Calculate CGPA and SGPA
-  const calculateSGPA = (semester: number) => {
+  const calculateSGPA = (semester: number): string => {
     const semesterGrades = allGrades.filter(g => g.semester === semester);
-    if (semesterGrades.length === 0) return 0;
+    if (semesterGrades.length === 0) return "0";
     const totalPoints = semesterGrades.reduce((sum, g) => sum + (g.points * g.credits), 0);
     const totalCredits = semesterGrades.reduce((sum, g) => sum + g.credits, 0);
-    return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+    return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0";
   };
 
-  const calculateCGPA = () => {
+  const calculateCGPA = (): string => {
     const allSemesters = Array.from(new Set(allGrades.map(g => g.semester)));
     let totalPoints = 0;
     let totalCredits = 0;
@@ -98,7 +98,7 @@ export default function StudentGradesPage() {
         totalCredits += g.credits;
       });
     });
-    return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+    return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0";
   };
 
   const cgpa = parseFloat(calculateCGPA());
@@ -135,7 +135,7 @@ export default function StudentGradesPage() {
       sgpa: parseFloat(calculateSGPA(sem)),
       cgpa: parseFloat(calculateCGPA()),
     }));
-  }, []);
+  }, [allGrades]);
 
   return (
     <div className="space-y-6">

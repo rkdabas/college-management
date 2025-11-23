@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileText, CheckCircle, XCircle, Clock, Eye, Filter, Search } from "lucide-react";
 
-interface Record {
+interface SubmittedRecord {
   id: string;
   teacherId: string;
   teacherName: string;
@@ -23,7 +23,7 @@ interface Record {
 }
 
 export default function AdminRecordsPage() {
-  const [records, setRecords] = useState<Record[]>([
+  const [records, setRecords] = useState<SubmittedRecord[]>([
     {
       id: "1",
       teacherId: "1",
@@ -87,7 +87,7 @@ export default function AdminRecordsPage() {
     return matchesStatus && matchesType && matchesSearch;
   });
 
-  const handleStatusChange = (id: string, status: Record["status"], remarks?: string) => {
+  const handleStatusChange = (id: string, status: SubmittedRecord["status"], remarks?: string) => {
     setRecords(
       records.map((r) =>
         r.id === id

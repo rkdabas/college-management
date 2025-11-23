@@ -69,7 +69,7 @@ export default function FacultyDetailPage({ params }: { params: { id: string } }
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <Briefcase className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-700">{teacher.department}</span>
+                  <span className="text-gray-700">{teacher.departmentName}</span>
                 </div>
               </div>
             </CardContent>
@@ -117,7 +117,7 @@ export default function FacultyDetailPage({ params }: { params: { id: string } }
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Department</p>
-                  <p className="font-medium mt-1">{teacher.department}</p>
+                  <p className="font-medium mt-1">{teacher.departmentName}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Joining Date</p>

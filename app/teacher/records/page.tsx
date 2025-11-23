@@ -10,7 +10,7 @@ import { FileText, Send, CheckCircle, Clock, X, Upload } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { demoTeachers } from "@/lib/demo-data-v2";
 
-interface Record {
+interface TeacherRecord {
   id: string;
   type: "attendance" | "grades" | "assignments" | "extracurricular" | "other";
   title: string;
@@ -27,7 +27,7 @@ export default function TeacherRecordsPage() {
   const { user } = useAuthStore();
   const teacher = demoTeachers.find(t => t.id === user?.id);
 
-  const [records, setRecords] = useState<Record[]>([
+  const [records, setRecords] = useState<TeacherRecord[]>([
     {
       id: "1",
       type: "attendance",
@@ -66,7 +66,7 @@ export default function TeacherRecordsPage() {
 
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [newRecord, setNewRecord] = useState({
-    type: "attendance" as Record["type"],
+    type: "attendance" as TeacherRecord["type"],
     title: "",
     description: "",
     subject: "",
@@ -91,7 +91,7 @@ export default function TeacherRecordsPage() {
   const handleSubmitRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const subject = subjects.find((s) => s.name === newRecord.subject);
-    const record: Record = {
+    const record: TeacherRecord = {
       id: String(records.length + 1),
       type: newRecord.type,
       title: newRecord.title,
@@ -230,7 +230,7 @@ export default function TeacherRecordsPage() {
                     id="type"
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                     value={newRecord.type}
-                    onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value as Record["type"] })}
+                    onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value as TeacherRecord["type"] })}
                     required
                   >
                     <option value="attendance">Attendance Report</option>

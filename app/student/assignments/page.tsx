@@ -8,8 +8,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileText, Upload, CheckCircle, Clock, AlertCircle, X, Eye, Download, Filter, Search } from "lucide-react";
 
+interface Assignment {
+  id: string;
+  subject: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  status: "pending" | "in-progress" | "submitted" | "overdue";
+  submittedDate?: string;
+  grade?: string;
+}
+
 export default function StudentAssignmentsPage() {
-  const [assignments, setAssignments] = useState([
+  const [assignments, setAssignments] = useState<Assignment[]>([
     {
       id: "1",
       subject: "Database Management Systems",
@@ -48,7 +59,7 @@ export default function StudentAssignmentsPage() {
 
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -66,7 +77,7 @@ export default function StudentAssignmentsPage() {
   const handleSubmit = (assignmentId: string) => {
     setAssignments(assignments.map(a => 
       a.id === assignmentId 
-        ? { ...a, status: "submitted", submittedDate: new Date().toISOString().split("T")[0] }
+        ? { ...a, status: "submitted" as const, submittedDate: new Date().toISOString().split("T")[0] }
         : a
     ));
     setShowSubmitModal(false);
@@ -74,7 +85,7 @@ export default function StudentAssignmentsPage() {
     alert("Assignment submitted successfully!");
   };
 
-  const handleViewDetails = (assignment: any) => {
+  const handleViewDetails = (assignment: Assignment) => {
     setSelectedAssignment(assignment);
     setShowDetailsModal(true);
   };
