@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "JIMS ERP Portal - Admin Portal",
+  title: "ERP Portal - Admin Portal",
   description: "Advanced Enterprise Resource Planning Portal for Educational Institutions - Student Management, Faculty Management, Academic Planning, and more",
   keywords: "ERP, College Management, Student Management, Academic Portal, Educational Institution",
 };

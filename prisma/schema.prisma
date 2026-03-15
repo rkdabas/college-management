@@ -1,0 +1,396 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────── Users ────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  phone     String?
+  role      String   @default("STUDENT") // ADMIN, TEACHER, STUDENT
+  password  String
+  status    String   @default("active") // active, inactive
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Student fields
+  rollNo        String?  @unique
+  semester      Int?
+  batch         Int?
+  degreeId      String?
+  degreeName    String?
+  branchId      String?
+  branchName    String?
+  branchCode    String?
+  dateOfBirth   String?
+  address       String?
+  guardianName  String?
+  guardianPhone String?
+  admissionDate String?
+
+  // Teacher fields
+  employeeId    String?  @unique
+  departmentId  String?
+  departmentName String?
+  designation   String?
+  qualification String?
+  experience    Int?
+  joiningDate   String?
+  salary        Float?
+
+  // Relations
+  teacherSubjects  TeacherSubject[]
+  attendances      Attendance[]
+  assignmentSubmissions AssignmentSubmission[]
+  grades           Grade[]
+  leaveApplications LeaveApplication[]
+  eventRegistrations EventRegistration[]
+  bookIssues       BookIssue[]
+  extracurriculars ExtracurricularActivity[] @relation("StudentActivities")
+  submittedRecords SubmittedRecord[] @relation("RecordSubmitter")
+  reviewedRecords  SubmittedRecord[] @relation("RecordReviewer")
+  createdAssignments Assignment[]
+  createdMaterials   Material[]
+  createdEvents      Event[]
+  managedActivities  ExtracurricularActivity[] @relation("TeacherActivities")
+  reviewedLeaves     LeaveApplication[] @relation("LeaveReviewer")
+
+  @@map("users")
+}
+
+// ──────────────────────────── Academic Structure ────────────────────────────
+
+model Degree {
+  id             String   @id @default(cuid())
+  name           String
+  code           String   @unique
+  type           String   // undergraduate, postgraduate, diploma
+  duration       Int
+  totalSemesters Int
+  description    String?
+  branches       Branch[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("degrees")
+}
+
+model Branch {
+  id          String   @id @default(cuid())
+  degreeId    String
+  degree      Degree   @relation(fields: [degreeId], references: [id])
+  name        String
+  code        String
+  capacity    Int      @default(60)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([degreeId, code])
+  @@map("branches")
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  degreeId  String
+  branchId  String
+  semester  Int
+  batch     Int
+  credits   Int
+  type      String   @default("theory") // theory, practical, project
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacherSubjects TeacherSubject[]
+  attendances     Attendance[]
+  assignments     Assignment[]
+  grades          Grade[]
+  materials       Material[]
+  timetableEntries TimetableEntry[]
+
+  @@map("subjects")
+}
+
+model TeacherSubject {
+  id        String   @id @default(cuid())
+  teacherId String
+  teacher   User     @relation(fields: [teacherId], references: [id])
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([teacherId, subjectId])
+  @@map("teacher_subjects")
+}
+
+// ──────────────────────────── Attendance ────────────────────────────
+
+model Attendance {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id])
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  date      String
+  status    String   // present, absent, leave
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, subjectId, date])
+  @@map("attendances")
+}
+
+// ──────────────────────────── Assignments ────────────────────────────
+
+model Assignment {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  teacherId   String
+  teacher     User     @relation(fields: [teacherId], references: [id])
+  dueDate     String
+  totalMarks  Int      @default(100)
+  status      String   @default("active") // active, closed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  submissions AssignmentSubmission[]
+
+  @@map("assignments")
+}
+
+model AssignmentSubmission {
+  id           String   @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  studentId    String
+  student      User     @relation(fields: [studentId], references: [id])
+  submittedAt  DateTime @default(now())
+  status       String   @default("submitted") // submitted, graded, late
+  grade        String?
+  marks        Float?
+  feedback     String?
+  updatedAt    DateTime @updatedAt
+
+  @@unique([assignmentId, studentId])
+  @@map("assignment_submissions")
+}
+
+// ──────────────────────────── Grades ────────────────────────────
+
+model Grade {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     User     @relation(fields: [studentId], references: [id])
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  semester    Int
+  type        String   // mid-sem, end-sem, assignment, lab, overall
+  grade       String?
+  marks       Float?
+  totalMarks  Float    @default(100)
+  points      Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([studentId, subjectId, type])
+  @@map("grades")
+}
+
+// ──────────────────────────── Materials ────────────────────────────
+
+model Material {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  teacherId   String
+  teacher     User     @relation(fields: [teacherId], references: [id])
+  type        String   @default("document") // document, video, image, spreadsheet, other
+  fileSize    String?
+  fileUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("materials")
+}
+
+// ──────────────────────────── Timetable ────────────────────────────
+
+model TimetableEntry {
+  id        String   @id @default(cuid())
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  dayOfWeek String   // Monday, Tuesday, etc.
+  startTime String   // "09:00"
+  endTime   String   // "10:00"
+  room      String
+  semester  Int
+  batch     Int
+  branchId  String
+  degreeId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("timetable_entries")
+}
+
+// ──────────────────────────── Events ────────────────────────────
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        String   // academic, cultural, sports, workshop, seminar, other
+  startDate   String
+  endDate     String
+  venue       String
+  organizer   String?
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  status      String   @default("upcoming") // upcoming, ongoing, completed, cancelled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  registrations EventRegistration[]
+
+  @@map("events")
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, studentId])
+  @@map("event_registrations")
+}
+
+// ──────────────────────────── Leave Applications ────────────────────────────
+
+model LeaveApplication {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  fromDate   String
+  toDate     String
+  reason     String
+  type       String   @default("personal") // personal, medical, academic, other
+  status     String   @default("pending") // pending, approved, rejected
+  appliedAt  DateTime @default(now())
+  reviewerId String?
+  reviewer   User?    @relation("LeaveReviewer", fields: [reviewerId], references: [id])
+  adminRemarks String?
+  updatedAt  DateTime @updatedAt
+
+  @@map("leave_applications")
+}
+
+// ──────────────────────────── Library ────────────────────────────
+
+model LibraryBook {
+  id          String   @id @default(cuid())
+  title       String
+  author      String
+  isbn        String   @unique
+  category    String
+  publisher   String?
+  totalCopies Int      @default(1)
+  available   Int      @default(1)
+  location    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  issues BookIssue[]
+
+  @@map("library_books")
+}
+
+model BookIssue {
+  id         String   @id @default(cuid())
+  bookId     String
+  book       LibraryBook @relation(fields: [bookId], references: [id])
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id])
+  issueDate  String
+  dueDate    String
+  returnDate String?
+  status     String   @default("active") // active, returned, overdue
+  fine       Float    @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("book_issues")
+}
+
+// ──────────────────────────── Extracurricular ────────────────────────────
+
+model ExtracurricularActivity {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      User     @relation("StudentActivities", fields: [studentId], references: [id])
+  teacherId    String?
+  teacher      User?    @relation("TeacherActivities", fields: [teacherId], references: [id])
+  activityType String   // sports, cultural, technical, social, other
+  activityName String
+  description  String?
+  date         String
+  achievement  String?
+  points       Int      @default(0)
+  status       String   @default("pending") // pending, approved, rejected
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("extracurricular_activities")
+}
+
+// ──────────────────────────── Submitted Records ────────────────────────────
+
+model SubmittedRecord {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  type         String   // ATTENDANCE, GRADES, ASSIGNMENTS, EXTRACURRICULAR, OTHER
+  subject      String
+  semester     Int
+  batch        Int
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminRemarks String?
+  submittedAt  DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  submitterId String
+  submitter   User   @relation("RecordSubmitter", fields: [submitterId], references: [id])
+  reviewerId  String?
+  reviewer    User?  @relation("RecordReviewer", fields: [reviewerId], references: [id])
+
+  @@map("submitted_records")
+}
+
+// ──────────────────────────── Department (for teacher grouping) ────────────────────────────
+
+model Department {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("departments")
+}

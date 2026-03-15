@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Calendar, Award, Activity, TrendingUp } from "lucide-react";
+import { Trophy, Calendar, Award, Activity } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
-import { demoStudents } from "@/lib/demo-data-v2";
 import {
   BarChart,
   Bar,
@@ -16,52 +15,30 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+interface ExtracurricularActivity {
+  id: string;
+  activityType: string;
+  activityName: string;
+  description: string | null;
+  date: string;
+  achievement: string | null;
+  points: number;
+  status: string;
+}
+
 export default function StudentExtracurricularPage() {
   const { user } = useAuthStore();
-  const student = demoStudents.find(s => s.id === user?.id);
+  const [activities, setActivities] = useState<ExtracurricularActivity[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const activities = [
-    {
-      id: "1",
-      activityType: "sports",
-      activityName: "Inter-College Cricket Tournament",
-      description: "Participated in cricket tournament representing college",
-      date: "2025-01-15",
-      achievement: "Runner-up",
-      points: 15,
-      status: "approved",
-    },
-    {
-      id: "2",
-      activityType: "cultural",
-      activityName: "Dance Competition",
-      description: "Participated in classical dance competition",
-      date: "2025-01-20",
-      achievement: "First Prize",
-      points: 20,
-      status: "approved",
-    },
-    {
-      id: "3",
-      activityType: "technical",
-      activityName: "Hackathon 2025",
-      description: "Participated in coding competition",
-      date: "2025-01-25",
-      achievement: "Participation",
-      points: 10,
-      status: "approved",
-    },
-    {
-      id: "4",
-      activityType: "social",
-      activityName: "Community Service",
-      description: "Volunteered for community service program",
-      date: "2025-01-10",
-      achievement: "Participation",
-      points: 5,
-      status: "approved",
-    },
-  ];
+  useEffect(() => {
+    if (!user?.id) return;
+    fetch(`/api/extracurricular?studentId=${user.id}`)
+      .then((res) => res.ok ? res.json() : [])
+      .then(setActivities)
+      .catch(() => setActivities([]))
+      .finally(() => setLoading(false));
+  }, [user?.id]);
 
   const activityTypeColors: Record<string, string> = {
     sports: "bg-emerald-100 text-emerald-700",
@@ -72,16 +49,22 @@ export default function StudentExtracurricularPage() {
   };
 
   const totalPoints = activities.reduce((sum, a) => sum + a.points, 0);
-
   const pointsByType = activities.reduce((acc, activity) => {
     acc[activity.activityType] = (acc[activity.activityType] || 0) + activity.points;
     return acc;
   }, {} as Record<string, number>);
-
   const chartData = Object.entries(pointsByType).map(([type, points]) => ({
     type: type.charAt(0).toUpperCase() + type.slice(1),
     points,
   }));
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -90,8 +73,7 @@ export default function StudentExtracurricularPage() {
         <p className="text-gray-600">View your extracurricular activities and achievements</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -129,65 +111,75 @@ export default function StudentExtracurricularPage() {
         </Card>
       </div>
 
-      {/* Points Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Points Distribution by Activity Type</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="type" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip />
-              <Bar dataKey="points" fill="#0ea5e9" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      {chartData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Points Distribution by Activity Type</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="type" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip />
+                <Bar dataKey="points" fill="#0ea5e9" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Activities List */}
       <Card>
         <CardHeader>
           <CardTitle>My Activities</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {activities.map((activity) => (
-              <div key={activity.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-bold text-gray-900">{activity.activityName}</h3>
-                      <Badge className={activityTypeColors[activity.activityType]}>
-                        {activity.activityType}
-                      </Badge>
-                      <Badge variant="success">Approved</Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(activity.date).toLocaleDateString()}
+          {activities.length > 0 ? (
+            <div className="space-y-4">
+              {activities.map((activity) => (
+                <div key={activity.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <h3 className="font-bold text-gray-900">{activity.activityName}</h3>
+                        <Badge className={activityTypeColors[activity.activityType] ?? "bg-gray-100 text-gray-700"}>
+                          {activity.activityType}
+                        </Badge>
+                        <Badge variant={activity.status === "approved" ? "success" : "outline"}>
+                          {activity.status}
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Trophy className="w-3 h-3" />
-                        {activity.achievement}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Award className="w-3 h-3" />
-                        {activity.points} points
+                      <p className="text-sm text-gray-600 mb-2">{activity.description ?? "-"}</p>
+                      <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(activity.date).toLocaleDateString()}
+                        </div>
+                        {activity.achievement && (
+                          <div className="flex items-center gap-1">
+                            <Trophy className="w-3 h-3" />
+                            {activity.achievement}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1">
+                          <Award className="w-3 h-3" />
+                          {activity.points} points
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">No extracurricular activities yet</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
-

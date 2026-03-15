@@ -1,46 +1,96 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { ClipboardList, CheckCircle, XCircle, Clock, Calendar as CalendarIcon } from "lucide-react";
-import { useState, useMemo } from "react";
+import {
+  ClipboardList,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Calendar as CalendarIcon,
+} from "lucide-react";
+import { useAuthStore } from "@/lib/store";
+
+interface Subject {
+  id: string;
+  name: string;
+  code: string;
+  semester: number;
+  batch: number;
+  branchId?: string;
+}
+
+interface Student {
+  id: string;
+  rollNo: string | null;
+  name: string;
+}
 
 export default function TeacherAttendancePage() {
-  const [selectedClass, setSelectedClass] = useState("1");
+  const { user } = useAuthStore();
+  const [classes, setClasses] = useState<Subject[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedClass, setSelectedClass] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<"daily" | "weekly" | "monthly">("daily");
-  const [studentAttendance, setStudentAttendance] = useState<Record<string, Record<string, "present" | "absent" | "leave">>>({});
-  
-  const classes = [
-    { id: "1", subject: "Database Management Systems", batch: 2021, semester: 6 },
-    { id: "2", subject: "Database Management Systems", batch: 2022, semester: 4 },
-    { id: "3", subject: "Operating Systems", batch: 2022, semester: 4 },
-  ];
+  const [viewMode, setViewMode] = useState<"daily" | "weekly" | "monthly">(
+    "daily"
+  );
+  const [studentAttendance, setStudentAttendance] = useState<
+    Record<string, Record<string, "present" | "absent" | "leave">>
+  >({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const students = [
-    { id: "1", rollNo: "21CSE001", name: "Rahul Sharma" },
-    { id: "2", rollNo: "21CSE002", name: "Priya Verma" },
-    { id: "3", rollNo: "21CSE003", name: "Amit Kumar" },
-    { id: "4", rollNo: "21CSE004", name: "Sneha Patel" },
-    { id: "5", rollNo: "21CSE005", name: "Arjun Singh" },
-  ];
+  useEffect(() => {
+    if (!user?.id) return;
+    fetch(`/api/subjects?teacherId=${user.id}`)
+      .then((res) => res.json())
+      .then((subjects: Subject[]) => {
+        if (Array.isArray(subjects)) {
+          setClasses(subjects);
+          if (subjects.length > 0) {
+            setSelectedClass((prev) => prev || subjects[0].id);
+          }
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user?.id]);
 
-  const currentClass = classes.find(c => c.id === selectedClass);
+  const currentClass = classes.find((c) => c.id === selectedClass);
+
+  useEffect(() => {
+    if (!currentClass) return;
+    const params = new URLSearchParams({
+      semester: String(currentClass.semester),
+      batch: String(currentClass.batch),
+    });
+    if (currentClass.branchId) params.set("branchId", currentClass.branchId);
+    fetch(`/api/students?${params}`)
+      .then((res) => res.json())
+      .then((data: Student[]) => {
+        setStudents(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setStudents([]));
+  }, [currentClass]);
 
   const formatDateKey = (date: Date) => {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   };
 
-  const handleAttendanceChange = (studentId: string, status: "present" | "absent" | "leave") => {
+  const handleAttendanceChange = (
+    studentId: string,
+    status: "present" | "absent" | "leave"
+  ) => {
     const dateKey = formatDateKey(selectedDate);
-    setStudentAttendance(prev => ({
+    setStudentAttendance((prev) => ({
       ...prev,
       [dateKey]: {
         ...prev[dateKey],
         [studentId]: status,
-      }
+      },
     }));
   };
 
@@ -49,19 +99,25 @@ export default function TeacherAttendancePage() {
     return studentAttendance[dateKey]?.[studentId] || null;
   };
 
-  // Build attendance data for calendar
   const calendarAttendanceData = useMemo(() => {
     const data: Record<string, "present" | "absent" | "leave"> = {};
-    Object.keys(studentAttendance).forEach(dateKey => {
+    Object.keys(studentAttendance).forEach((dateKey) => {
       const dayData = studentAttendance[dateKey];
-      const presentCount = Object.values(dayData).filter(s => s === "present").length;
-      const absentCount = Object.values(dayData).filter(s => s === "absent").length;
-      const leaveCount = Object.values(dayData).filter(s => s === "leave").length;
+      const presentCount = Object.values(dayData).filter(
+        (s) => s === "present"
+      ).length;
+      const absentCount = Object.values(dayData).filter(
+        (s) => s === "absent"
+      ).length;
+      const leaveCount = Object.values(dayData).filter(
+        (s) => s === "leave"
+      ).length;
       const total = presentCount + absentCount + leaveCount;
-      
       if (total > 0) {
-        // Mark as present if majority are present
-        if (presentCount > absentCount && presentCount > leaveCount) {
+        if (
+          presentCount > absentCount &&
+          presentCount > leaveCount
+        ) {
           data[dateKey] = "present";
         } else if (absentCount > leaveCount) {
           data[dateKey] = "absent";
@@ -73,23 +129,24 @@ export default function TeacherAttendancePage() {
     return data;
   }, [studentAttendance]);
 
-  // Weekly attendance summary
   const weeklySummary = useMemo(() => {
     const startOfWeek = new Date(selectedDate);
     startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-    let present = 0;
-    let absent = 0;
-    let leave = 0;
-    let total = 0;
-
-    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
+    let present = 0,
+      absent = 0,
+      leave = 0,
+      total = 0;
+    for (
+      let d = new Date(startOfWeek);
+      d <= endOfWeek;
+      d.setDate(d.getDate() + 1)
+    ) {
       const dateKey = formatDateKey(d);
       const dayData = studentAttendance[dateKey];
       if (dayData) {
-        Object.values(dayData).forEach(status => {
+        Object.values(dayData).forEach((status) => {
           total++;
           if (status === "present") present++;
           else if (status === "absent") absent++;
@@ -97,26 +154,28 @@ export default function TeacherAttendancePage() {
         });
       }
     }
-
-    return { present, absent, leave, total, percentage: total > 0 ? Math.round((present / total) * 100) : 0 };
+    return {
+      present,
+      absent,
+      leave,
+      total,
+      percentage: total > 0 ? Math.round((present / total) * 100) : 0,
+    };
   }, [selectedDate, studentAttendance]);
 
-  // Monthly attendance summary
   const monthlySummary = useMemo(() => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    let present = 0;
-    let absent = 0;
-    let leave = 0;
-    let total = 0;
-
+    let present = 0,
+      absent = 0,
+      leave = 0,
+      total = 0;
     for (let day = 1; day <= daysInMonth; day++) {
-      const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const dayData = studentAttendance[dateKey];
       if (dayData) {
-        Object.values(dayData).forEach(status => {
+        Object.values(dayData).forEach((status) => {
           total++;
           if (status === "present") present++;
           else if (status === "absent") absent++;
@@ -124,25 +183,69 @@ export default function TeacherAttendancePage() {
         });
       }
     }
-
-    return { present, absent, leave, total, percentage: total > 0 ? Math.round((present / total) * 100) : 0 };
+    return {
+      present,
+      absent,
+      leave,
+      total,
+      percentage: total > 0 ? Math.round((present / total) * 100) : 0,
+    };
   }, [selectedDate, studentAttendance]);
 
-  const handleSaveAttendance = () => {
-    // Save attendance logic here
-    console.log("Saving attendance for", formatDateKey(selectedDate), studentAttendance[formatDateKey(selectedDate)]);
-    alert("Attendance saved successfully!");
+  const handleSaveAttendance = async () => {
+    if (!currentClass) return;
+    const dateKey = formatDateKey(selectedDate);
+    const dayData = studentAttendance[dateKey];
+    if (!dayData || Object.keys(dayData).length === 0) {
+      alert("Please mark attendance for at least one student.");
+      return;
+    }
+    setSaving(true);
+    const records = Object.entries(dayData).map(([studentId, status]) => ({
+      studentId,
+      subjectId: currentClass.id,
+      date: dateKey,
+      status,
+    }));
+    try {
+      const res = await fetch("/api/attendance/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(records),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || "Attendance saved successfully!");
+      } else {
+        alert(data.error || "Failed to save attendance.");
+      }
+    } catch {
+      alert("Failed to save attendance.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-gray-500">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mark Attendance</h1>
-        <p className="text-gray-600">Mark attendance for your classes with calendar view</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+          Mark Attendance
+        </h1>
+        <p className="text-gray-600">
+          Mark attendance for your classes with calendar view
+        </p>
       </div>
 
-      {/* View Mode Tabs */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           variant={viewMode === "daily" ? "default" : "outline"}
           onClick={() => setViewMode("daily")}
@@ -164,7 +267,6 @@ export default function TeacherAttendancePage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar */}
         <div className="lg:col-span-2">
           <Calendar
             selectedDate={selectedDate}
@@ -173,7 +275,6 @@ export default function TeacherAttendancePage() {
           />
         </div>
 
-        {/* Summary Cards */}
         <div className="space-y-4">
           {viewMode === "daily" && (
             <Card>
@@ -182,20 +283,28 @@ export default function TeacherAttendancePage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-gray-600 mb-2">
-                  {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  {selectedDate.toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </p>
-                <p className="text-xs text-gray-500">Select a date to mark attendance</p>
+                <p className="text-xs text-gray-500">
+                  Select a date to mark attendance
+                </p>
               </CardContent>
             </Card>
           )}
-
           {viewMode === "weekly" && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Weekly Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-gray-900 mb-2">{weeklySummary.percentage}%</p>
+                <p className="text-3xl font-bold text-gray-900 mb-2">
+                  {weeklySummary.percentage}%
+                </p>
                 <div className="space-y-1 text-xs text-gray-600">
                   <p>Present: {weeklySummary.present}</p>
                   <p>Absent: {weeklySummary.absent}</p>
@@ -205,14 +314,15 @@ export default function TeacherAttendancePage() {
               </CardContent>
             </Card>
           )}
-
           {viewMode === "monthly" && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Monthly Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-gray-900 mb-2">{monthlySummary.percentage}%</p>
+                <p className="text-3xl font-bold text-gray-900 mb-2">
+                  {monthlySummary.percentage}%
+                </p>
                 <div className="space-y-1 text-xs text-gray-600">
                   <p>Present: {monthlySummary.present}</p>
                   <p>Absent: {monthlySummary.absent}</p>
@@ -230,31 +340,39 @@ export default function TeacherAttendancePage() {
           <CardTitle>Select Class</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {classes.map((classItem) => (
               <button
                 key={classItem.id}
                 onClick={() => setSelectedClass(classItem.id)}
-                className={`p-4 rounded-xl border-2 transition-all ${
+                className={`p-4 rounded-xl border-2 transition-all text-left ${
                   selectedClass === classItem.id
                     ? "border-sky-600 bg-sky-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <h3 className="font-semibold text-gray-900 mb-1">{classItem.subject}</h3>
-                <p className="text-sm text-gray-600">Batch {classItem.batch} | Sem {classItem.semester}</p>
+                <h3 className="font-semibold text-gray-900 mb-1">
+                  {classItem.name}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Batch {classItem.batch} | Sem {classItem.semester}
+                </p>
               </button>
             ))}
           </div>
+          {classes.length === 0 && (
+            <p className="text-gray-500 py-4">No classes assigned</p>
+          )}
         </CardContent>
       </Card>
 
       {currentClass && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                {currentClass.subject} - Batch {currentClass.batch} | Semester {currentClass.semester}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="text-base sm:text-lg">
+                {currentClass.name} - Batch {currentClass.batch} | Semester{" "}
+                {currentClass.semester}
               </CardTitle>
               <div className="flex items-center gap-2">
                 <CalendarIcon className="w-4 h-4 text-gray-500" />
@@ -266,47 +384,69 @@ export default function TeacherAttendancePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {students.map((student) => {
-                const status = getStudentStatus(student.id);
-                return (
-                  <div key={student.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div className="flex items-center gap-4">
+              {students.length === 0 ? (
+                <p className="text-gray-500 py-4">No students in this class</p>
+              ) : (
+                students.map((student) => {
+                  const status = getStudentStatus(student.id);
+                  return (
+                    <div
+                      key={student.id}
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 gap-3"
+                    >
                       <div>
-                        <p className="font-semibold text-gray-900">{student.name}</p>
-                        <p className="text-sm text-gray-600">{student.rollNo}</p>
+                        <p className="font-semibold text-gray-900">
+                          {student.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {student.rollNo || student.id}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant={status === "present" ? "default" : "outline"}
+                          onClick={() =>
+                            handleAttendanceChange(student.id, "present")
+                          }
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Present
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={
+                            status === "absent" ? "destructive" : "outline"
+                          }
+                          onClick={() =>
+                            handleAttendanceChange(student.id, "absent")
+                          }
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Absent
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={status === "leave" ? "default" : "outline"}
+                          onClick={() =>
+                            handleAttendanceChange(student.id, "leave")
+                          }
+                        >
+                          <Clock className="w-4 h-4 mr-1" />
+                          Leave
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant={status === "present" ? "default" : "outline"}
-                        onClick={() => handleAttendanceChange(student.id, "present")}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Present
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={status === "absent" ? "destructive" : "outline"}
-                        onClick={() => handleAttendanceChange(student.id, "absent")}
-                      >
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Absent
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={status === "leave" ? "default" : "outline"}
-                        onClick={() => handleAttendanceChange(student.id, "leave")}
-                      >
-                        <Clock className="w-4 h-4 mr-1" />
-                        Leave
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
               <div className="mt-4 flex justify-end">
-                <Button onClick={handleSaveAttendance}>Save Attendance</Button>
+                <Button
+                  onClick={handleSaveAttendance}
+                  disabled={saving || students.length === 0}
+                >
+                  {saving ? "Saving..." : "Save Attendance"}
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -315,4 +455,3 @@ export default function TeacherAttendancePage() {
     </div>
   );
 }
-

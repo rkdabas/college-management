@@ -103,7 +103,7 @@ export function Sidebar() {
             <GraduationCap className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="font-bold text-lg tracking-tight text-gray-900">JIMS ERP</h2>
+            <h2 className="font-bold text-lg tracking-tight text-gray-900">ERP</h2>
             <p className="text-xs text-gray-500 font-medium">Admin Portal</p>
           </div>
         </div>

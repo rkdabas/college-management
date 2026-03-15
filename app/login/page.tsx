@@ -33,16 +33,13 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
-    // Simulate a brief delay for demo purposes
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     if (!selectedRole) {
       setError("Please select a role");
       setIsLoading(false);
       return;
     }
 
-    const success = login(username, password, selectedRole);
+    const success = await login(username, password, selectedRole);
     
     if (success) {
       if (selectedRole === "admin") {
@@ -71,7 +68,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-sky-600 to-sky-700 rounded-2xl mb-6 shadow-lg shadow-sky-600/20">
             <GraduationCap className="w-12 h-12 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2 tracking-tight">JIMS ERP Portal</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2 tracking-tight">ERP Portal</h1>
           <p className="text-gray-600 font-medium">College Management System</p>
         </div>
 
@@ -217,11 +214,11 @@ export default function LoginPage() {
                     <>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600 font-medium">Username:</span>
-                        <code className="bg-white px-3 py-1 rounded-lg text-sky-700 font-semibold border border-sky-200">admin</code>
+                        <code className="bg-white px-3 py-1 rounded-lg text-sky-700 font-semibold border border-sky-200">admin@college.edu</code>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600 font-medium">Password:</span>
-                        <code className="bg-white px-3 py-1 rounded-lg text-sky-700 font-semibold border border-sky-200">admin123</code>
+                        <code className="bg-white px-3 py-1 rounded-lg text-sky-700 font-semibold border border-sky-200">password123</code>
                       </div>
                     </>
                   )}
@@ -233,7 +230,7 @@ export default function LoginPage() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600 font-medium">Password:</span>
-                        <code className="bg-white px-3 py-1 rounded-lg text-sky-700 font-semibold border border-sky-200">student123</code>
+                        <code className="bg-white px-3 py-1 rounded-lg text-sky-700 font-semibold border border-sky-200">password123</code>
                       </div>
                     </>
                   )}
@@ -245,7 +242,7 @@ export default function LoginPage() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600 font-medium">Password:</span>
-                        <code className="bg-white px-3 py-1 rounded-lg text-sky-700 font-semibold border border-sky-200">teacher123</code>
+                        <code className="bg-white px-3 py-1 rounded-lg text-sky-700 font-semibold border border-sky-200">password123</code>
                       </div>
                     </>
                   )}

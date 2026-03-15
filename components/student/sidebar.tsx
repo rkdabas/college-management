@@ -14,7 +14,7 @@ import {
   CalendarDays,
   FileCheck,
   User,
-  Settings,
+  X,
 } from "lucide-react";
 
 interface NavItem {
@@ -86,20 +86,33 @@ const navItems: NavItem[] = [
   },
 ];
 
-export function StudentSidebar() {
+interface StudentSidebarProps {
+  onClose?: () => void;
+}
+
+export function StudentSidebar({ onClose }: StudentSidebarProps) {
   const pathname = usePathname();
 
   return (
     <div className="flex flex-col h-full bg-white shadow-xl">
       <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 bg-gradient-to-br from-sky-600 to-sky-700 rounded-xl flex items-center justify-center shadow-md shadow-sky-600/20">
-            <BookOpen className="w-6 h-6 text-white" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 bg-gradient-to-br from-sky-600 to-sky-700 rounded-xl flex items-center justify-center shadow-md shadow-sky-600/20">
+              <BookOpen className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="font-bold text-lg tracking-tight text-gray-900"> ERP</h2>
+              <p className="text-xs text-gray-500 font-medium">Student Portal</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-bold text-lg tracking-tight text-gray-900">JIMS ERP</h2>
-            <p className="text-xs text-gray-500 font-medium">Student Portal</p>
-          </div>
+          <button
+            onClick={onClose}
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -111,6 +124,7 @@ export function StudentSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => onClose?.()}
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
                   isActive
@@ -143,4 +157,3 @@ export function StudentSidebar() {
     </div>
   );
 }
-

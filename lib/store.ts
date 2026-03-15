@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { demoStudents, demoTeachers } from "./demo-data-v2";
 
 interface User {
   id: string;
@@ -7,68 +6,86 @@ interface User {
   role: "admin" | "teacher" | "student";
   name: string;
   email: string;
+  rollNo?: string;
+  employeeId?: string;
+  semester?: number;
+  batch?: number;
+  degreeId?: string;
+  degreeName?: string;
+  branchId?: string;
+  branchName?: string;
+  branchCode?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  address?: string;
+  guardianName?: string;
+  guardianPhone?: string;
+  admissionDate?: string;
+  departmentId?: string;
+  departmentName?: string;
+  designation?: string;
+  qualification?: string;
+  experience?: number;
 }
 
 interface AuthStore {
   user: User | null;
   isAuthenticated: boolean;
-  login: (username: string, password: string, role?: "admin" | "teacher" | "student") => boolean;
+  login: (username: string, password: string, role?: "admin" | "teacher" | "student") => Promise<boolean>;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isAuthenticated: false,
-  login: (username: string, password: string, role?: "admin" | "teacher" | "student") => {
-    // Admin login
-    if (username === "admin" && password === "admin123") {
+  login: async (username: string, password: string, role?: "admin" | "teacher" | "student") => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: username, password, role }),
+      });
+
+      if (!response.ok) return false;
+
+      const data = await response.json();
+      const userRole = data.role.toLowerCase() as "admin" | "teacher" | "student";
+      
       const user: User = {
-        id: "1",
-        username: "admin",
-        role: "admin",
-        name: "Admin User",
-        email: "admin@college.edu",
+        id: data.id,
+        username: data.rollNo || data.employeeId || data.email,
+        role: userRole,
+        name: data.name,
+        email: data.email,
+        rollNo: data.rollNo,
+        employeeId: data.employeeId,
+        semester: data.semester,
+        batch: data.batch,
+        degreeId: data.degreeId,
+        degreeName: data.degreeName,
+        branchId: data.branchId,
+        branchName: data.branchName,
+        branchCode: data.branchCode,
+        phone: data.phone,
+        dateOfBirth: data.dateOfBirth,
+        address: data.address,
+        guardianName: data.guardianName,
+        guardianPhone: data.guardianPhone,
+        admissionDate: data.admissionDate,
+        departmentId: data.departmentId,
+        departmentName: data.departmentName,
+        designation: data.designation,
+        qualification: data.qualification,
+        experience: data.experience,
       };
+
       set({ user, isAuthenticated: true });
       return true;
+    } catch {
+      return false;
     }
-    
-    // Student login (using rollNo as username)
-    if (role === "student") {
-      const student = demoStudents.find(s => s.rollNo === username);
-      if (student && password === "student123") {
-        const user: User = {
-          id: student.id,
-          username: student.rollNo,
-          role: "student",
-          name: student.name,
-          email: student.email,
-        };
-        set({ user, isAuthenticated: true });
-        return true;
-      }
-    }
-    
-    // Teacher login (using employeeId as username)
-    if (role === "teacher") {
-      const teacher = demoTeachers.find(t => t.employeeId === username);
-      if (teacher && password === "teacher123") {
-        const user: User = {
-          id: teacher.id,
-          username: teacher.employeeId,
-          role: "teacher",
-          name: teacher.name,
-          email: teacher.email,
-        };
-        set({ user, isAuthenticated: true });
-        return true;
-      }
-    }
-    
-    return false;
   },
   logout: () => {
     set({ user: null, isAuthenticated: false });
   },
 }));
-

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,92 +9,92 @@ import { FileText, CheckCircle, XCircle, Clock, Eye, Filter, Search } from "luci
 
 interface SubmittedRecord {
   id: string;
-  teacherId: string;
-  teacherName: string;
-  type: "attendance" | "grades" | "assignments" | "extracurricular" | "other";
   title: string;
   description: string;
+  type: "ATTENDANCE" | "GRADES" | "ASSIGNMENTS" | "EXTRACURRICULAR" | "OTHER";
   subject: string;
   semester: number;
   batch: number;
-  submittedDate: string;
-  status: "pending" | "approved" | "rejected";
+  status: "PENDING" | "APPROVED" | "REJECTED";
   adminRemarks?: string;
+  submittedAt: string;
+  updatedAt: string;
+  submitter: {
+    id: string;
+    name: string;
+    teacherId?: string;
+  };
+  reviewer?: {
+    id: string;
+    name: string;
+  };
 }
 
 export default function AdminRecordsPage() {
-  const [records, setRecords] = useState<SubmittedRecord[]>([
-    {
-      id: "1",
-      teacherId: "1",
-      teacherName: "Dr. Rajesh Kumar",
-      type: "attendance",
-      title: "Monthly Attendance Report - January 2025",
-      description: "Complete attendance records for Database Systems - Sem 6",
-      subject: "Database Management Systems",
-      semester: 6,
-      batch: 2021,
-      submittedDate: "2025-01-30",
-      status: "approved",
-      adminRemarks: "Records verified and approved",
-    },
-    {
-      id: "2",
-      teacherId: "2",
-      teacherName: "Dr. Sunita Sharma",
-      type: "grades",
-      title: "Mid-term Exam Grades - Operating Systems",
-      description: "All student grades for mid-term examination",
-      subject: "Operating Systems",
-      semester: 4,
-      batch: 2022,
-      submittedDate: "2025-01-25",
-      status: "pending",
-    },
-    {
-      id: "3",
-      teacherId: "1",
-      teacherName: "Dr. Rajesh Kumar",
-      type: "assignments",
-      title: "Assignment Evaluation Report",
-      description: "Grading summary for Assignment 3",
-      subject: "Database Management Systems",
-      semester: 6,
-      batch: 2021,
-      submittedDate: "2025-01-20",
-      status: "approved",
-    },
-  ]);
-
+  const [records, setRecords] = useState<SubmittedRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const fetchRecords = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (selectedStatus) params.append('status', selectedStatus);
+      if (selectedType) params.append('type', selectedType);
+      if (searchQuery) params.append('search', searchQuery);
+
+      const response = await fetch(`/api/records?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRecords(data);
+      } else {
+        console.error('Failed to fetch records');
+      }
+    } catch (error) {
+      console.error('Error fetching records:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedStatus, selectedType, searchQuery]);
+
+  useEffect(() => {
+    fetchRecords();
+  }, [fetchRecords]);
+
   const recordTypeColors: Record<string, string> = {
-    attendance: "bg-sky-100 text-sky-700",
-    grades: "bg-emerald-100 text-emerald-700",
-    assignments: "bg-amber-100 text-amber-700",
-    extracurricular: "bg-pink-100 text-pink-700",
-    other: "bg-gray-100 text-gray-700",
+    ATTENDANCE: "bg-sky-100 text-sky-700",
+    GRADES: "bg-emerald-100 text-emerald-700",
+    ASSIGNMENTS: "bg-amber-100 text-amber-700",
+    EXTRACURRICULAR: "bg-pink-100 text-pink-700",
+    OTHER: "bg-gray-100 text-gray-700",
   };
 
-  const filteredRecords = records.filter((record) => {
-    const matchesStatus = !selectedStatus || record.status === selectedStatus;
-    const matchesType = !selectedType || record.type === selectedType;
-    const matchesSearch = record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         record.teacherName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         record.subject.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesType && matchesSearch;
-  });
+  const filteredRecords = records; // Filtering is now done server-side
 
-  const handleStatusChange = (id: string, status: SubmittedRecord["status"], remarks?: string) => {
-    setRecords(
-      records.map((r) =>
-        r.id === id
-          ? { ...r, status, adminRemarks: remarks }
-          : r
-      )
-    );
+  const handleStatusChange = async (id: string, status: SubmittedRecord["status"], remarks?: string) => {
+    try {
+      const response = await fetch(`/api/records/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status,
+          adminRemarks: remarks,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh records after successful update
+        fetchRecords();
+      } else {
+        console.error('Failed to update record status');
+      }
+    } catch (error) {
+      console.error('Error updating record status:', error);
+    }
   };
 
   return (
@@ -119,7 +119,7 @@ export default function AdminRecordsPage() {
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Pending Review</p>
               <p className="text-3xl font-bold text-gray-900">
-                {records.filter((r) => r.status === "pending").length}
+                {records.filter((r) => r.status === "PENDING").length}
               </p>
             </div>
           </CardContent>
@@ -129,7 +129,7 @@ export default function AdminRecordsPage() {
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Approved</p>
               <p className="text-3xl font-bold text-gray-900">
-                {records.filter((r) => r.status === "approved").length}
+                {records.filter((r) => r.status === "APPROVED").length}
               </p>
             </div>
           </CardContent>
@@ -139,7 +139,7 @@ export default function AdminRecordsPage() {
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Rejected</p>
               <p className="text-3xl font-bold text-gray-900">
-                {records.filter((r) => r.status === "rejected").length}
+                {records.filter((r) => r.status === "REJECTED").length}
               </p>
             </div>
           </CardContent>
@@ -173,9 +173,9 @@ export default function AdminRecordsPage() {
                 onChange={(e) => setSelectedStatus(e.target.value)}
               >
                 <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
+                <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
               </select>
             </div>
             <div>
@@ -185,11 +185,11 @@ export default function AdminRecordsPage() {
                 onChange={(e) => setSelectedType(e.target.value)}
               >
                 <option value="">All Types</option>
-                <option value="attendance">Attendance</option>
-                <option value="grades">Grades</option>
-                <option value="assignments">Assignments</option>
-                <option value="extracurricular">Extracurricular</option>
-                <option value="other">Other</option>
+                <option value="ATTENDANCE">Attendance</option>
+                <option value="GRADES">Grades</option>
+                <option value="ASSIGNMENTS">Assignments</option>
+                <option value="EXTRACURRICULAR">Extracurricular</option>
+                <option value="OTHER">Other</option>
               </select>
             </div>
           </div>
@@ -202,8 +202,13 @@ export default function AdminRecordsPage() {
           <CardTitle>Records ({filteredRecords.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredRecords.map((record) => (
+          {loading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Loading records...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredRecords.map((record) => (
               <div key={record.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
@@ -212,16 +217,16 @@ export default function AdminRecordsPage() {
                       <Badge className={recordTypeColors[record.type]}>
                         {record.type}
                       </Badge>
-                      <Badge variant={record.status === "approved" ? "success" : record.status === "pending" ? "outline" : "destructive"}>
-                        {record.status}
+                      <Badge variant={record.status === "APPROVED" ? "success" : record.status === "PENDING" ? "outline" : "destructive"}>
+                        {record.status.toLowerCase()}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{record.description}</p>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>Teacher: {record.teacherName}</span>
+                      <span>Teacher: {record.submitter.name}</span>
                       <span>{record.subject}</span>
                       <span>Sem {record.semester} | Batch {record.batch}</span>
-                      <span>Submitted: {new Date(record.submittedDate).toLocaleDateString()}</span>
+                      <span>Submitted: {new Date(record.submittedAt).toLocaleDateString()}</span>
                     </div>
                     {record.adminRemarks && (
                       <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
@@ -231,14 +236,14 @@ export default function AdminRecordsPage() {
                     )}
                   </div>
                 </div>
-                {record.status === "pending" && (
+                {record.status === "PENDING" && (
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => {
                         const remarks = prompt("Enter approval remarks (optional):");
-                        handleStatusChange(record.id, "approved", remarks || undefined);
+                        handleStatusChange(record.id, "APPROVED", remarks || undefined);
                       }}
                       className="bg-emerald-50 text-emerald-700 border-emerald-200"
                     >
@@ -251,7 +256,7 @@ export default function AdminRecordsPage() {
                       onClick={() => {
                         const remarks = prompt("Enter rejection reason:");
                         if (remarks) {
-                          handleStatusChange(record.id, "rejected", remarks);
+                          handleStatusChange(record.id, "REJECTED", remarks);
                         }
                       }}
                       className="bg-red-50 text-red-700 border-red-200"
@@ -266,8 +271,9 @@ export default function AdminRecordsPage() {
                   </div>
                 )}
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

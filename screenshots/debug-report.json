@@ -1,0 +1,41 @@
+{
+  "consoleErrors": [],
+  "consoleLogs": [
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    }
+  ],
+  "pageInfo": {
+    "stylesheets": [
+      {
+        "href": "http://localhost:3000/_next/static/css/app/layout.css?v=1773490451002",
+        "disabled": false
+      }
+    ],
+    "styleTagsCount": 0,
+    "styleTags": [],
+    "hasVisibleContent": true,
+    "bodyTextLength": 279,
+    "bodyTextPreview": "ERP Portal\n\nCollege Management System\n\nSelect Your Role\n\nChoose how you want to access the portal\n\nAdmin\n\nAccess admin dashboard and manage college operations\n\nTeacher\n\nManage classes, attendance, and student progress\n\nStudent\n\nView attendance, grades, assignments, and more",
+    "bodyClasses": "__className_5c4a2f antialiased",
+    "rootHtmlPreview": "no __next",
+    "computedBg": "rgb(250, 250, 250)",
+    "documentReadyState": "complete",
+    "headingStyle": {
+      "color": "rgb(17, 24, 39)",
+      "opacity": "1",
+      "visibility": "visible",
+      "display": "block"
+    },
+    "cardStyle": {
+      "color": "rgb(15, 23, 41)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "opacity": "1",
+      "visibility": "visible"
+    },
+    "h1Exists": true,
+    "buttonCount": 3
+  },
+  "appearsBlank": false
+}

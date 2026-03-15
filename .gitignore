@@ -20,6 +20,11 @@
 .DS_Store
 *.pem
 
+# screenshots (from scripts)
+login-page.png
+student-dashboard.png
+error-state.png
+
 # debug
 npm-debug.log*
 yarn-debug.log*

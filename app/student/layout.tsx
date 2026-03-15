@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { StudentSidebar } from "@/components/student/sidebar";
@@ -13,6 +13,7 @@ export default function StudentLayout({
 }) {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== "student") {
@@ -26,12 +27,26 @@ export default function StudentLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <aside className="w-64 flex-shrink-0 border-r border-gray-200 shadow-xl">
-        <StudentSidebar />
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } flex-shrink-0 border-r border-gray-200 shadow-xl`}
+      >
+        <StudentSidebar onClose={() => setSidebarOpen(false)} />
       </aside>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <StudentHeader />
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-8 scrollbar-professional">
+
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
+        <StudentHeader onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8 scrollbar-professional">
           <div className="animate-fade-in">
             {children}
           </div>
@@ -40,4 +55,3 @@ export default function StudentLayout({
     </div>
   );
 }
-

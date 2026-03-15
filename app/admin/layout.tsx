@@ -18,7 +18,7 @@ export default function AdminLayout({
   // AI Chat State
   const [showAIChat, setShowAIChat] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([
-    { role: 'assistant', content: 'Hello! I\'m your JIMS ERP AI Assistant. How can I help you with the admin panel today?' }
+    { role: 'assistant', content: 'Hello! I\'m your ERP AI Assistant. How can I help you with the admin panel today?' }
   ]);
   const [inputMessage, setInputMessage] = useState("");
 
@@ -106,7 +106,7 @@ export default function AdminLayout({
                 <Bot className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-white font-bold text-sm">JIMS AI Assistant</h3>
+                <h3 className="text-white font-bold text-sm">AI Assistant</h3>
                 <p className="text-sky-100 text-xs">Always here to help</p>
               </div>
             </div>

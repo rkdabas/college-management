@@ -192,7 +192,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome back! Here's your institutional overview.</p>
+          <p className="text-gray-600 mt-1">Welcome back! Here&apos;s your institutional overview.</p>
         </div>
         <div className="flex gap-2">
           <Badge variant="outline" className="text-sm py-1 px-3">

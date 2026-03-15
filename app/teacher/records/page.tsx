@@ -1,72 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Send, CheckCircle, Clock, X, Upload } from "lucide-react";
+import { Send, X } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
-import { demoTeachers } from "@/lib/demo-data-v2";
 
 interface TeacherRecord {
   id: string;
-  type: "attendance" | "grades" | "assignments" | "extracurricular" | "other";
+  type: string;
   title: string;
   description: string;
   subject: string;
   semester: number;
   batch: number;
-  submittedDate: string;
-  status: "pending" | "approved" | "rejected";
-  adminRemarks?: string;
+  submittedAt: string;
+  status: string;
+  adminRemarks?: string | null;
+}
+
+interface Subject {
+  id: string;
+  name: string;
+  code: string;
+  semester: number;
+  batch: number;
 }
 
 export default function TeacherRecordsPage() {
   const { user } = useAuthStore();
-  const teacher = demoTeachers.find(t => t.id === user?.id);
-
-  const [records, setRecords] = useState<TeacherRecord[]>([
-    {
-      id: "1",
-      type: "attendance",
-      title: "Monthly Attendance Report - January 2025",
-      description: "Complete attendance records for Database Systems - Sem 6",
-      subject: "Database Management Systems",
-      semester: 6,
-      batch: 2021,
-      submittedDate: "2025-01-30",
-      status: "approved",
-      adminRemarks: "Records verified and approved",
-    },
-    {
-      id: "2",
-      type: "grades",
-      title: "Mid-term Exam Grades - Operating Systems",
-      description: "All student grades for mid-term examination",
-      subject: "Operating Systems",
-      semester: 4,
-      batch: 2022,
-      submittedDate: "2025-01-25",
-      status: "pending",
-    },
-    {
-      id: "3",
-      type: "assignments",
-      title: "Assignment Evaluation Report",
-      description: "Grading summary for Assignment 3",
-      subject: "Database Management Systems",
-      semester: 6,
-      batch: 2021,
-      submittedDate: "2025-01-20",
-      status: "approved",
-    },
-  ]);
-
+  const [records, setRecords] = useState<TeacherRecord[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   const [newRecord, setNewRecord] = useState({
-    type: "attendance" as TeacherRecord["type"],
+    type: "ATTENDANCE",
     title: "",
     description: "",
     subject: "",
@@ -74,53 +47,84 @@ export default function TeacherRecordsPage() {
     batch: "",
   });
 
-  const subjects = [
-    { id: "1", name: "Database Management Systems", semester: 6, batch: 2021 },
-    { id: "2", name: "Database Management Systems", semester: 4, batch: 2022 },
-    { id: "3", name: "Operating Systems", semester: 4, batch: 2022 },
-  ];
+  useEffect(() => {
+    if (!user?.id) return;
+    Promise.all([
+      fetch(`/api/records?submitterId=${user.id}`).then((r) => r.json()),
+      fetch(`/api/subjects?teacherId=${user.id}`).then((r) => r.json()),
+    ])
+      .then(([recs, subs]) => {
+        setRecords(Array.isArray(recs) ? recs : []);
+        setSubjects(Array.isArray(subs) ? subs : []);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user?.id]);
 
   const recordTypeColors: Record<string, string> = {
-    attendance: "bg-sky-100 text-sky-700",
-    grades: "bg-emerald-100 text-emerald-700",
-    assignments: "bg-amber-100 text-amber-700",
-    extracurricular: "bg-pink-100 text-pink-700",
-    other: "bg-gray-100 text-gray-700",
+    ATTENDANCE: "bg-sky-100 text-sky-700",
+    GRADES: "bg-emerald-100 text-emerald-700",
+    ASSIGNMENTS: "bg-amber-100 text-amber-700",
+    EXTRACURRICULAR: "bg-pink-100 text-pink-700",
+    OTHER: "bg-gray-100 text-gray-700",
   };
 
-  const handleSubmitRecord = (e: React.FormEvent) => {
+  const handleSubmitRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    const subject = subjects.find((s) => s.name === newRecord.subject);
-    const record: TeacherRecord = {
-      id: String(records.length + 1),
-      type: newRecord.type,
-      title: newRecord.title,
-      description: newRecord.description,
-      subject: newRecord.subject,
-      semester: subject ? subject.semester : parseInt(newRecord.semester),
-      batch: subject ? subject.batch : parseInt(newRecord.batch),
-      submittedDate: new Date().toISOString().split("T")[0],
-      status: "pending",
-    };
-    setRecords([...records, record]);
-    setShowSubmitModal(false);
-    setNewRecord({
-      type: "attendance",
-      title: "",
-      description: "",
-      subject: "",
-      semester: "",
-      batch: "",
-    });
-    alert("Record submitted successfully! Admin will review it.");
+    if (!user?.id) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/records", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newRecord,
+          semester: parseInt(newRecord.semester),
+          batch: parseInt(newRecord.batch),
+          submitterId: user.id,
+        }),
+      });
+      const created = await res.json();
+      if (res.ok) {
+        setRecords((prev) => [created, ...prev]);
+        setShowSubmitModal(false);
+        setNewRecord({
+          type: "ATTENDANCE",
+          title: "",
+          description: "",
+          subject: "",
+          semester: "",
+          batch: "",
+        });
+        alert("Record submitted successfully! Admin will review it.");
+      } else {
+        alert(created.error || "Failed to submit record.");
+      }
+    } catch {
+      alert("Failed to submit record.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-gray-500">Loading records...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Submit Records</h1>
-          <p className="text-gray-600">Submit records and reports to admin for review</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            Submit Records
+          </h1>
+          <p className="text-gray-600">
+            Submit records and reports to admin for review
+          </p>
         </div>
         <Button onClick={() => setShowSubmitModal(true)}>
           <Send className="w-4 h-4 mr-2" />
@@ -128,96 +132,128 @@ export default function TeacherRecordsPage() {
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Total Records</p>
-              <p className="text-3xl font-bold text-gray-900">{records.length}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {records.length}
+              </p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Approved</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {records.filter((r) => r.status === "approved").length}
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {records.filter((r) => r.status === "APPROVED").length}
               </p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Pending</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {records.filter((r) => r.status === "pending").length}
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {records.filter((r) => r.status === "PENDING").length}
               </p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Rejected</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {records.filter((r) => r.status === "rejected").length}
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {records.filter((r) => r.status === "REJECTED").length}
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Records List */}
       <Card>
         <CardHeader>
           <CardTitle>Submitted Records</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {records.map((record) => (
-              <div key={record.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-bold text-gray-900">{record.title}</h3>
-                      <Badge className={recordTypeColors[record.type]}>
-                        {record.type}
-                      </Badge>
-                      <Badge variant={record.status === "approved" ? "success" : record.status === "pending" ? "outline" : "destructive"}>
-                        {record.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2">{record.description}</p>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>{record.subject}</span>
-                      <span>Sem {record.semester} | Batch {record.batch}</span>
-                      <span>Submitted: {new Date(record.submittedDate).toLocaleDateString()}</span>
-                    </div>
-                    {record.adminRemarks && (
-                      <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-xs font-semibold text-blue-900 mb-1">Admin Remarks:</p>
-                        <p className="text-xs text-blue-700">{record.adminRemarks}</p>
-                      </div>
-                    )}
+            {records.length === 0 ? (
+              <p className="text-gray-500 py-8 text-center">
+                No records submitted yet
+              </p>
+            ) : (
+              records.map((record) => (
+                <div
+                  key={record.id}
+                  className="p-4 bg-gray-50 rounded-xl border border-gray-200"
+                >
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                    <h3 className="font-bold text-gray-900">{record.title}</h3>
+                    <Badge
+                      className={
+                        recordTypeColors[record.type] ||
+                        recordTypeColors.OTHER
+                      }
+                    >
+                      {record.type}
+                    </Badge>
+                    <Badge
+                      variant={
+                        record.status === "APPROVED"
+                          ? "outline"
+                          : record.status === "PENDING"
+                          ? "outline"
+                          : "destructive"
+                      }
+                    >
+                      {record.status}
+                    </Badge>
                   </div>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {record.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2 sm:gap-4 text-xs text-gray-500">
+                    <span>{record.subject}</span>
+                    <span>
+                      Sem {record.semester} | Batch {record.batch}
+                    </span>
+                    <span>
+                      Submitted:{" "}
+                      {new Date(record.submittedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {record.adminRemarks && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-xs font-semibold text-blue-900 mb-1">
+                        Admin Remarks:
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        {record.adminRemarks}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Submit Record Modal */}
       {showSubmitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Submit New Record</CardTitle>
-                <Button variant="ghost" size="icon" onClick={() => setShowSubmitModal(false)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowSubmitModal(false)}
+                >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
@@ -230,14 +266,18 @@ export default function TeacherRecordsPage() {
                     id="type"
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                     value={newRecord.type}
-                    onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value as TeacherRecord["type"] })}
+                    onChange={(e) =>
+                      setNewRecord({ ...newRecord, type: e.target.value })
+                    }
                     required
                   >
-                    <option value="attendance">Attendance Report</option>
-                    <option value="grades">Grades Report</option>
-                    <option value="assignments">Assignment Report</option>
-                    <option value="extracurricular">Extracurricular Report</option>
-                    <option value="other">Other</option>
+                    <option value="ATTENDANCE">Attendance Report</option>
+                    <option value="GRADES">Grades Report</option>
+                    <option value="ASSIGNMENTS">Assignment Report</option>
+                    <option value="EXTRACURRICULAR">
+                      Extracurricular Report
+                    </option>
+                    <option value="OTHER">Other</option>
                   </select>
                 </div>
                 <div>
@@ -247,23 +287,22 @@ export default function TeacherRecordsPage() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                     value={newRecord.subject}
                     onChange={(e) => {
-                      setNewRecord({ ...newRecord, subject: e.target.value });
-                      const subject = subjects.find((s) => s.name === e.target.value);
-                      if (subject) {
-                        setNewRecord({
-                          ...newRecord,
-                          subject: subject.name,
-                          semester: String(subject.semester),
-                          batch: String(subject.batch),
-                        });
-                      }
+                      const sub = subjects.find(
+                        (s) => s.name === e.target.value
+                      );
+                      setNewRecord({
+                        ...newRecord,
+                        subject: e.target.value,
+                        semester: sub ? String(sub.semester) : "",
+                        batch: sub ? String(sub.batch) : "",
+                      });
                     }}
                     required
                   >
                     <option value="">Select Subject</option>
-                    {subjects.map((subject) => (
-                      <option key={subject.id} value={subject.name}>
-                        {subject.name} - Sem {subject.semester} (Batch {subject.batch})
+                    {subjects.map((s) => (
+                      <option key={s.id} value={s.name}>
+                        {s.name} - Sem {s.semester} (Batch {s.batch})
                       </option>
                     ))}
                   </select>
@@ -273,7 +312,9 @@ export default function TeacherRecordsPage() {
                   <Input
                     id="title"
                     value={newRecord.title}
-                    onChange={(e) => setNewRecord({ ...newRecord, title: e.target.value })}
+                    onChange={(e) =>
+                      setNewRecord({ ...newRecord, title: e.target.value })
+                    }
                     placeholder="e.g., Monthly Attendance Report - January 2025"
                     required
                   />
@@ -285,24 +326,25 @@ export default function TeacherRecordsPage() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                     rows={3}
                     value={newRecord.description}
-                    onChange={(e) => setNewRecord({ ...newRecord, description: e.target.value })}
+                    onChange={(e) =>
+                      setNewRecord({
+                        ...newRecord,
+                        description: e.target.value,
+                      })
+                    }
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="file">Attach File (Optional)</Label>
-                  <Input
-                    id="file"
-                    type="file"
-                    className="cursor-pointer"
-                  />
-                </div>
                 <div className="flex gap-2">
-                  <Button type="submit" className="flex-1">
+                  <Button type="submit" className="flex-1" disabled={saving}>
                     <Send className="w-4 h-4 mr-2" />
                     Submit to Admin
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setShowSubmitModal(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowSubmitModal(false)}
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -314,4 +356,3 @@ export default function TeacherRecordsPage() {
     </div>
   );
 }
-

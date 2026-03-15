@@ -90,7 +90,7 @@ export default function AcademicStructurePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Academic Structure</h1>
-          <p className="text-gray-600 mt-1">Manage your institution's academic hierarchy</p>
+          <p className="text-gray-600 mt-1">Manage your institution&apos;s academic hierarchy</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => openAddModal("degree")} className="gap-2">

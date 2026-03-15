@@ -213,7 +213,7 @@ export default function AdminCorrectionsPage() {
                         </div>
                       </div>
                       <div className="p-3 bg-white rounded-lg border border-gray-200">
-                        <p className="text-xs font-semibold text-gray-900 mb-1">Student's Reason:</p>
+                        <p className="text-xs font-semibold text-gray-900 mb-1">Student&apos;s Reason:</p>
                         <p className="text-sm text-gray-700">{request.reason}</p>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-gray-500">

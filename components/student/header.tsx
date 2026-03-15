@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
-import { Bell, Search, LogOut, User, ChevronDown, Calendar, AlertCircle, CheckCircle, X } from "lucide-react";
+import { Bell, Search, LogOut, User, ChevronDown, Calendar, AlertCircle, CheckCircle, X, Menu } from "lucide-react";
 
 // Mock notification data for students
 const mockNotifications = [
@@ -54,7 +54,11 @@ const mockNotifications = [
   },
 ];
 
-export function StudentHeader() {
+interface StudentHeaderProps {
+  onMenuClick?: () => void;
+}
+
+export function StudentHeader({ onMenuClick }: StudentHeaderProps) {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -99,8 +103,17 @@ export function StudentHeader() {
   }, [showNotifications]);
 
   return (
-    <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
+    <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm">
       <div className="flex items-center flex-1 gap-6">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onMenuClick}
+          className="lg:hidden flex-shrink-0 hover:bg-gray-100 rounded-xl transition-colors duration-200"
+          aria-label="Toggle menu"
+        >
+          <Menu className="w-5 h-5 text-gray-600" />
+        </Button>
         <div className="relative flex-1 max-w-lg">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input

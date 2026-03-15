@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar as CalendarIcon, MapPin, Users, Send, X, Eye, Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  Plus,
+  Calendar as CalendarIcon,
+  MapPin,
+  Users,
+  Send,
+  X,
+  Trash2,
+} from "lucide-react";
+import { useAuthStore } from "@/lib/store";
 
 const eventTypeColors: Record<string, string> = {
   academic: "bg-sky-100 text-sky-700",
@@ -19,37 +26,29 @@ const eventTypeColors: Record<string, string> = {
   other: "bg-gray-100 text-gray-700",
 };
 
-export default function TeacherEventsPage() {
-  const router = useRouter();
-  const [events, setEvents] = useState([
-    {
-      id: "1",
-      title: "Department Meeting",
-      description: "Monthly department meeting to discuss academic matters",
-      startDate: "2025-01-30",
-      endDate: "2025-01-30",
-      venue: "Conference Hall",
-      type: "academic",
-      status: "upcoming",
-      organizer: "CS Department",
-    },
-    {
-      id: "2",
-      title: "Faculty Development Program",
-      description: "Workshop on modern teaching methodologies",
-      startDate: "2025-02-10",
-      endDate: "2025-02-10",
-      venue: "Seminar Hall",
-      type: "workshop",
-      status: "upcoming",
-      organizer: "Training Department",
-    },
-  ]);
+interface Event {
+  id: string;
+  title: string;
+  description: string | null;
+  startDate: string;
+  endDate: string;
+  venue: string;
+  type: string;
+  status?: string;
+  organizer?: string | null;
+}
 
+export default function TeacherEventsPage() {
+  const { user } = useAuthStore();
+  const [events, setEvents] = useState<Event[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
-  const [notificationAudience, setNotificationAudience] = useState<string[]>(["all"]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [notificationAudience, setNotificationAudience] = useState<string[]>([
+    "all",
+  ]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -61,7 +60,17 @@ export default function TeacherEventsPage() {
     organizer: "",
   });
 
-  const openNotificationModal = (event: any) => {
+  useEffect(() => {
+    fetch("/api/events")
+      .then((res) => res.json())
+      .then((data: Event[]) => {
+        setEvents(Array.isArray(data) ? data : []);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const openNotificationModal = (event: Event) => {
     setSelectedEvent(event);
     setNotificationAudience(["all"]);
     setShowNotificationModal(true);
@@ -80,7 +89,9 @@ export default function TeacherEventsPage() {
       const newAudience = notificationAudience.filter((a) => a !== "all");
       if (newAudience.includes(audience)) {
         const filtered = newAudience.filter((a) => a !== audience);
-        setNotificationAudience(filtered.length === 0 ? ["all"] : filtered);
+        setNotificationAudience(
+          filtered.length === 0 ? ["all"] : filtered
+        );
       } else {
         setNotificationAudience([...newAudience, audience]);
       }
@@ -89,50 +100,78 @@ export default function TeacherEventsPage() {
 
   const sendNotification = () => {
     if (!selectedEvent || notificationAudience.length === 0) return;
-
     const audienceText = notificationAudience.includes("all")
       ? "All Users"
-      : notificationAudience.map((a) => a.charAt(0).toUpperCase() + a.slice(1)).join(", ");
-
+      : notificationAudience
+          .map((a) => a.charAt(0).toUpperCase() + a.slice(1))
+          .join(", ");
     alert(
       `Email notification sent successfully!\n\nEvent: ${selectedEvent.title}\nAudience: ${audienceText}`
     );
     closeNotificationModal();
   };
 
-  const handleCreateEvent = (e: React.FormEvent) => {
+  const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    const event = {
-      id: String(events.length + 1),
-      ...newEvent,
-      status: "upcoming",
-      participants: 0,
-    };
-    setEvents([...events, event]);
-    setShowAddModal(false);
-    setNewEvent({
-      title: "",
-      description: "",
-      type: "academic",
-      startDate: "",
-      endDate: "",
-      venue: "",
-      organizer: "",
-    });
+    if (!user?.id) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newEvent,
+          createdById: user.id,
+        }),
+      });
+      const created = await res.json();
+      if (res.ok) {
+        setEvents((prev) => [created, ...prev]);
+        setShowAddModal(false);
+        setNewEvent({
+          title: "",
+          description: "",
+          type: "academic",
+          startDate: "",
+          endDate: "",
+          venue: "",
+          organizer: "",
+        });
+        alert("Event created successfully!");
+      } else {
+        alert(created.error || "Failed to create event.");
+      }
+    } catch {
+      alert("Failed to create event.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteEvent = (id: string) => {
     if (confirm("Are you sure you want to delete this event?")) {
-      setEvents(events.filter((e) => e.id !== id));
+      setEvents((prev) => prev.filter((e) => e.id !== id));
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-gray-500">Loading events...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Events</h1>
-          <p className="text-gray-600">Create and manage events, send notifications</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            Events
+          </h1>
+          <p className="text-gray-600">
+            Create and manage events, send notifications
+          </p>
         </div>
         <Button onClick={() => setShowAddModal(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -140,76 +179,66 @@ export default function TeacherEventsPage() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Total Events</p>
-              <p className="text-3xl font-bold text-gray-900">{events.length}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {events.length}
+              </p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Upcoming</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {events.filter((e) => e.status === "upcoming").length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Ongoing</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {events.filter((e) => e.status === "ongoing").length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Completed</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {events.filter((e) => e.status === "completed").length}
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {events.filter((e) => {
+                  const status = e.status?.toLowerCase();
+                  return !status || status === "upcoming";
+                }).length}
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {events.map((event) => (
           <Card key={event.id}>
             <CardHeader>
               <div className="flex items-start justify-between mb-2">
                 <CardTitle className="text-lg">{event.title}</CardTitle>
-                <Badge className={eventTypeColors[event.type] || eventTypeColors.other}>
+                <Badge
+                  className={
+                    eventTypeColors[event.type] || eventTypeColors.other
+                  }
+                >
                   {event.type}
                 </Badge>
               </div>
-              <p className="text-sm text-gray-600">{event.description}</p>
+              <p className="text-sm text-gray-600">{event.description || "—"}</p>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <CalendarIcon className="w-4 h-4" />
                   {new Date(event.startDate).toLocaleDateString()}
-                  {event.endDate !== event.startDate && ` - ${new Date(event.endDate).toLocaleDateString()}`}
+                  {event.endDate !== event.startDate &&
+                    ` - ${new Date(event.endDate).toLocaleDateString()}`}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <MapPin className="w-4 h-4" />
                   {event.venue}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Users className="w-4 h-4" />
-                  {event.organizer}
-                </div>
+                {event.organizer && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Users className="w-4 h-4" />
+                    {event.organizer}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -234,14 +263,17 @@ export default function TeacherEventsPage() {
         ))}
       </div>
 
-      {/* Create Event Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Create New Event</CardTitle>
-                <Button variant="ghost" size="icon" onClick={() => setShowAddModal(false)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowAddModal(false)}
+                >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
@@ -253,29 +285,37 @@ export default function TeacherEventsPage() {
                   <Input
                     id="title"
                     value={newEvent.title}
-                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                    onChange={(e) =>
+                      setNewEvent({ ...newEvent, title: e.target.value })
+                    }
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="description">Description *</Label>
+                  <Label htmlFor="description">Description</Label>
                   <textarea
                     id="description"
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                     rows={3}
                     value={newEvent.description}
-                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                    required
+                    onChange={(e) =>
+                      setNewEvent({
+                        ...newEvent,
+                        description: e.target.value,
+                      })
+                    }
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="type">Event Type *</Label>
                     <select
                       id="type"
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                       value={newEvent.type}
-                      onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value })}
+                      onChange={(e) =>
+                        setNewEvent({ ...newEvent, type: e.target.value })
+                      }
                       required
                     >
                       <option value="academic">Academic</option>
@@ -291,19 +331,26 @@ export default function TeacherEventsPage() {
                     <Input
                       id="venue"
                       value={newEvent.venue}
-                      onChange={(e) => setNewEvent({ ...newEvent, venue: e.target.value })}
+                      onChange={(e) =>
+                        setNewEvent({ ...newEvent, venue: e.target.value })
+                      }
                       required
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="startDate">Start Date *</Label>
                     <Input
                       id="startDate"
                       type="date"
                       value={newEvent.startDate}
-                      onChange={(e) => setNewEvent({ ...newEvent, startDate: e.target.value })}
+                      onChange={(e) =>
+                        setNewEvent({
+                          ...newEvent,
+                          startDate: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
@@ -313,23 +360,38 @@ export default function TeacherEventsPage() {
                       id="endDate"
                       type="date"
                       value={newEvent.endDate}
-                      onChange={(e) => setNewEvent({ ...newEvent, endDate: e.target.value })}
+                      onChange={(e) =>
+                        setNewEvent({
+                          ...newEvent,
+                          endDate: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="organizer">Organizer *</Label>
+                  <Label htmlFor="organizer">Organizer</Label>
                   <Input
                     id="organizer"
                     value={newEvent.organizer}
-                    onChange={(e) => setNewEvent({ ...newEvent, organizer: e.target.value })}
-                    required
+                    onChange={(e) =>
+                      setNewEvent({
+                        ...newEvent,
+                        organizer: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button type="submit" className="flex-1">Create Event</Button>
-                  <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                  <Button type="submit" className="flex-1" disabled={saving}>
+                    Create Event
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowAddModal(false)}
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -339,14 +401,17 @@ export default function TeacherEventsPage() {
         </div>
       )}
 
-      {/* Notification Modal */}
       {showNotificationModal && selectedEvent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-md">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Send Notification</CardTitle>
-                <Button variant="ghost" size="icon" onClick={closeNotificationModal}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={closeNotificationModal}
+                >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
@@ -354,19 +419,29 @@ export default function TeacherEventsPage() {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900 mb-2">Event:</p>
+                  <p className="text-sm font-semibold text-gray-900 mb-2">
+                    Event:
+                  </p>
                   <p className="text-sm text-gray-600">{selectedEvent.title}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900 mb-3">Select Audience:</p>
+                  <p className="text-sm font-semibold text-gray-900 mb-3">
+                    Select Audience:
+                  </p>
                   <div className="space-y-2">
                     {[
                       { value: "all", label: "All Users" },
                       { value: "students", label: "Students Only" },
                       { value: "teachers", label: "Teachers Only" },
                       { value: "staff", label: "Staff Only" },
-                      { value: "teachers-staff", label: "Teachers + Staff" },
-                      { value: "students-teachers", label: "Students + Teachers" },
+                      {
+                        value: "teachers-staff",
+                        label: "Teachers + Staff",
+                      },
+                      {
+                        value: "students-teachers",
+                        label: "Students + Teachers",
+                      },
                     ].map((audience) => (
                       <label
                         key={audience.value}
@@ -374,17 +449,24 @@ export default function TeacherEventsPage() {
                       >
                         <input
                           type="checkbox"
-                          checked={notificationAudience.includes(audience.value)}
+                          checked={notificationAudience.includes(
+                            audience.value
+                          )}
                           onChange={() => toggleAudience(audience.value)}
                           className="w-4 h-4"
                         />
-                        <span className="text-sm text-gray-700">{audience.label}</span>
+                        <span className="text-sm text-gray-700">
+                          {audience.label}
+                        </span>
                       </label>
                     ))}
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={sendNotification} className="flex-1">
+                  <Button
+                    onClick={sendNotification}
+                    className="flex-1"
+                  >
                     <Send className="w-4 h-4 mr-2" />
                     Send Notification
                   </Button>
@@ -400,4 +482,3 @@ export default function TeacherEventsPage() {
     </div>
   );
 }
-

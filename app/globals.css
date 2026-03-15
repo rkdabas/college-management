@@ -197,7 +197,7 @@
   
   /* Professional Animation */
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
+    animation: fadeIn 0.3s ease-in-out forwards;
   }
   
   @keyframes fadeIn {
@@ -212,7 +212,7 @@
   }
   
   .animate-slide-in {
-    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
   
   @keyframes slideIn {

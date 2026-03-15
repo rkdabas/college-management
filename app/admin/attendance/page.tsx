@@ -502,7 +502,7 @@ export default function AttendancePage() {
 
               {/* Attendance Status for Selected Date */}
               <div>
-                <h3 className="text-lg font-semibold mb-3 text-primary">Today's Attendance</h3>
+                <h3 className="text-lg font-semibold mb-3 text-primary">Today&apos;s Attendance</h3>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm text-gray-600">Date: {new Date(selectedDate).toLocaleDateString()}</span>
